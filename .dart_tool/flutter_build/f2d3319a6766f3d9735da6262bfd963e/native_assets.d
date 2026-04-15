@@ -1,0 +1,1 @@
+ /Users/user/dev-projects/matchlog/.dart_tool/flutter_build/f2d3319a6766f3d9735da6262bfd963e/native_assets.yaml: 
