@@ -23,9 +23,15 @@ enum GroupRole { admin, member }
 
 enum PredictionConfidence { high, medium, low }
 
-enum ActivityType { matchLogged, betPlaced, predictionMade, betSettled, reviewPosted, groupJoined }
+enum ActivityType { matchLogged, betPlaced, predictionMade, betSettled, reviewPosted, groupJoined, slipVerified }
 
-enum NotificationType { matchReminder, betSettlement, socialActivity, weeklyDigest, aiInsight }
+enum NotificationType { matchReminder, betSettlement, socialActivity, weeklyDigest, aiInsight, verificationResult }
+
+enum VerificationStatus { pending, verified, rejected, flagged }
+
+enum TruthTier { unverified, bronze, silver, gold, diamond }
+
+enum FraudFlag { duplicateImage, metadataMismatch, lowOcrConfidence, unrealisticOdds, statisticalAnomaly }
 ```
 
 ---
@@ -145,6 +151,10 @@ class UserProfiles extends Table {
   TextColumn get displayName => text()();
   TextColumn get email => text()();
   TextColumn get photoUrl => text().nullable()();
+  /// True when the user has verified their email address.
+  /// Always true for Google/Apple sign-in (set by Firebase automatically).
+  /// Email/Password users start as false and verify via sendEmailVerification().
+  BoolColumn get emailVerified => boolean().withDefault(const Constant(false))();
   IntColumn get tier => intEnum<UserTier>()();
   IntColumn get favoriteSport => intEnum<Sport>().nullable()();
   TextColumn get favoriteTeam => text().nullable()();
@@ -180,11 +190,78 @@ class FixtureCache extends Table {
   @override
   Set<Column> get primaryKey => {fixtureId};
 }
+
+// Scanned bet slips (verification system)
+class ScannedBetSlips extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get imageUrl => text().nullable()();  // Firebase Storage URL
+  TextColumn get localImagePath => text().nullable()();  // Local path before upload
+  TextColumn get bookmaker => text()();
+  TextColumn get slipCode => text().nullable()();
+  TextColumn get extractedBets => text().map(const JsonListConverter())();  // JSON array
+  RealColumn get totalOdds => real().nullable()();
+  RealColumn get stake => real()();
+  RealColumn get potentialPayout => real()();
+  TextColumn get currency => text().withDefault(const Constant('NGN'))();
+  IntColumn get status => intEnum<VerificationStatus>()();
+  DateTimeColumn get verifiedAt => dateTime().nullable()();
+  BoolColumn get won => boolean().nullable()();
+  RealColumn get actualPayout => real().nullable()();
+  TextColumn get linkedBetEntryId => text().nullable()();
+  RealColumn get ocrConfidence => real()();
+  TextColumn get rawOcrText => text()();
+  TextColumn get fraudFlags => text().map(const JsonListConverter()).withDefault(const Constant('[]'))();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// Truth score cache (computed from verified slips)
+class TruthScores extends Table {
+  TextColumn get userId => text()();
+  IntColumn get totalScannedSlips => integer().withDefault(const Constant(0))();
+  IntColumn get verifiedSlips => integer().withDefault(const Constant(0))();
+  IntColumn get rejectedSlips => integer().withDefault(const Constant(0))();
+  IntColumn get flaggedSlips => integer().withDefault(const Constant(0))();
+  IntColumn get verifiedWins => integer().withDefault(const Constant(0))();
+  IntColumn get verifiedLosses => integer().withDefault(const Constant(0))();
+  RealColumn get verifiedWinRate => real().withDefault(const Constant(0.0))();
+  RealColumn get verifiedRoi => real().withDefault(const Constant(0.0))();
+  IntColumn get truthScore => integer().withDefault(const Constant(0))();
+  IntColumn get tier => intEnum<TruthTier>()();
+  TextColumn get breakdown => text().map(const JsonMapConverter()).withDefault(const Constant('{}'))();
+  DateTimeColumn get lastUpdated => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {userId};
+}
 ```
 
 ---
 
 ## Freezed Domain Entities
+
+> **Note on AppUser entity:** The `AppUser` domain entity (defined in `features/auth/domain/entities/app_user.dart` when the auth feature is built) must include `emailVerified: bool`. This field is sourced from `FirebaseAuth.currentUser.emailVerified` and cached in the local `UserProfiles` table. It gates social features (feed posting, group joining, predictions, bet slip scanning) for Email/Password users. Google and Apple users always have `emailVerified = true`.
+
+```dart
+// features/auth/domain/entities/app_user.dart
+@freezed
+class AppUser with _$AppUser {
+  const factory AppUser({
+    required String id,           // Firebase UID
+    required String email,
+    required String displayName,
+    String? photoUrl,
+    required bool emailVerified,  // Always true for Google/Apple; requires verification for Email/Password
+    required UserTier tier,
+    required DateTime createdAt,
+  }) = _AppUser;
+}
+```
 
 ```dart
 // features/diary/domain/entities/match_entry.dart
@@ -286,6 +363,86 @@ class ActivityItem with _$ActivityItem {
   factory ActivityItem.fromJson(Map<String, dynamic> json) =>
       _$ActivityItemFromJson(json);
 }
+
+// features/verification/domain/entities/scanned_bet_slip.dart
+@freezed
+class ScannedBetSlip with _$ScannedBetSlip {
+  const factory ScannedBetSlip({
+    required String id,
+    required String userId,
+    String? imageUrl,
+    String? localImagePath,
+    required String bookmaker,
+    String? slipCode,
+    required List<ExtractedBet> extractedBets,
+    double? totalOdds,
+    required double stake,
+    required double potentialPayout,
+    @Default('NGN') String currency,
+    required VerificationStatus status,
+    DateTime? verifiedAt,
+    bool? won,
+    double? actualPayout,
+    String? linkedBetEntryId,
+    required double ocrConfidence,
+    required String rawOcrText,
+    @Default([]) List<FraudFlag> fraudFlags,
+    required DateTime createdAt,
+    DateTime? updatedAt,
+  }) = _ScannedBetSlip;
+
+  factory ScannedBetSlip.fromJson(Map<String, dynamic> json) =>
+      _$ScannedBetSlipFromJson(json);
+}
+
+@freezed
+class ExtractedBet with _$ExtractedBet {
+  const factory ExtractedBet({
+    required String matchDescription,
+    required String prediction,
+    required double odds,
+    String? fixtureId,  // Matched against API fixture
+  }) = _ExtractedBet;
+
+  factory ExtractedBet.fromJson(Map<String, dynamic> json) =>
+      _$ExtractedBetFromJson(json);
+}
+
+// features/verification/domain/entities/truth_score.dart
+@freezed
+class TruthScore with _$TruthScore {
+  const factory TruthScore({
+    required String userId,
+    required int totalScannedSlips,
+    required int verifiedSlips,
+    required int rejectedSlips,
+    required int flaggedSlips,
+    required int verifiedWins,
+    required int verifiedLosses,
+    required double verifiedWinRate,
+    required double verifiedRoi,
+    required int truthScore,      // 0-100
+    required TruthTier tier,
+    required TruthScoreBreakdown breakdown,
+    required DateTime lastUpdated,
+  }) = _TruthScore;
+
+  factory TruthScore.fromJson(Map<String, dynamic> json) =>
+      _$TruthScoreFromJson(json);
+}
+
+@freezed
+class TruthScoreBreakdown with _$TruthScoreBreakdown {
+  const factory TruthScoreBreakdown({
+    required double scanConsistency,  // 40% weight
+    required double volumeScore,      // 25% weight
+    required double recencyScore,     // 20% weight
+    required double flagPenalty,      // 15% weight (subtracted)
+  }) = _TruthScoreBreakdown;
+
+  factory TruthScoreBreakdown.fromJson(Map<String, dynamic> json) =>
+      _$TruthScoreBreakdownFromJson(json);
+}
 ```
 
 ---
@@ -364,6 +521,11 @@ class YearReview with _$YearReview {
     required int predictionsCorrect,
     required double predictionAccuracy,
     String? aiSummary,                     // Gemini-generated paragraph
+    // Verification stats
+    int? slipsScanned,
+    int? slipsVerified,
+    int? truthScore,
+    TruthTier? truthTier,
   }) = _YearReview;
 }
 ```
@@ -632,6 +794,51 @@ CREATE TABLE follows (
 
 CREATE INDEX idx_follow_follower ON follows(follower_id);
 CREATE INDEX idx_follow_following ON follows(following_id);
+
+-- V7__create_bet_slip_scans.sql
+CREATE TABLE bet_slip_scans (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+    image_url TEXT,
+    bookmaker VARCHAR(100) NOT NULL,
+    slip_code VARCHAR(100),
+    extracted_bets JSONB NOT NULL DEFAULT '[]',
+    total_odds DECIMAL(10, 2),
+    stake DECIMAL(10, 2) NOT NULL,
+    potential_payout DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'NGN',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    verified_at TIMESTAMP,
+    won BOOLEAN,
+    actual_payout DECIMAL(10, 2),
+    linked_bet_entry_id VARCHAR(255) REFERENCES bet_entries(id),
+    ocr_confidence DECIMAL(3, 2) NOT NULL,
+    raw_ocr_text TEXT NOT NULL,
+    fraud_flags JSONB DEFAULT '[]',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+CREATE INDEX idx_scan_user ON bet_slip_scans(user_id);
+CREATE INDEX idx_scan_status ON bet_slip_scans(status);
+CREATE INDEX idx_scan_bookmaker ON bet_slip_scans(bookmaker);
+
+-- V8__create_truth_scores.sql
+CREATE TABLE truth_scores (
+    user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id),
+    total_scanned_slips INT NOT NULL DEFAULT 0,
+    verified_slips INT NOT NULL DEFAULT 0,
+    rejected_slips INT NOT NULL DEFAULT 0,
+    flagged_slips INT NOT NULL DEFAULT 0,
+    verified_wins INT NOT NULL DEFAULT 0,
+    verified_losses INT NOT NULL DEFAULT 0,
+    verified_win_rate DECIMAL(5, 2) NOT NULL DEFAULT 0,
+    verified_roi DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    truth_score INT NOT NULL DEFAULT 0,
+    tier VARCHAR(20) NOT NULL DEFAULT 'UNVERIFIED',
+    breakdown JSONB NOT NULL DEFAULT '{}',
+    last_updated TIMESTAMP NOT NULL DEFAULT NOW()
+);
 ```
 
 ---

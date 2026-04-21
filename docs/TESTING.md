@@ -99,6 +99,24 @@ test/
 │       └── presentation/
 │           └── search_screen_test.dart
 │
+├── features/
+│   └── verification/
+│       ├── data/
+│       │   ├── ocr_service_test.dart
+│       │   ├── bet9ja_parser_test.dart
+│       │   ├── sportybet_parser_test.dart
+│       │   ├── generic_parser_test.dart
+│       │   └── verification_repository_impl_test.dart
+│       ├── domain/
+│       │   └── usecases/
+│       │       ├── scan_bet_slip_test.dart
+│       │       ├── verify_bet_slip_test.dart
+│       │       ├── calculate_truth_score_test.dart
+│       │       └── flag_suspicious_slip_test.dart
+│       └── presentation/
+│           ├── scan_slip_screen_test.dart
+│           └── truth_score_screen_test.dart
+│
 ├── fixtures/                          # JSON fixture files for API mocking
 │   ├── thesportsdb/
 │   │   ├── upcoming_events.json
@@ -109,6 +127,15 @@ test/
 │   │   └── standings_response.json
 │   └── gemini/
 │       └── insight_response.json
+│
+├── fixtures/
+│   └── ocr/                               # Sample OCR outputs for parser testing
+│       ├── bet9ja_single_bet.txt
+│       ├── bet9ja_accumulator.txt
+│       ├── sportybet_slip.txt
+│       ├── betking_slip.txt
+│       ├── noisy_ocr_output.txt            # Low-confidence OCR for fallback testing
+│       └── manipulated_slip.txt             # Known fake for fraud detection testing
 │
 ├── mocks/                             # Shared mocks
 │   ├── mock_repositories.dart
@@ -124,7 +151,8 @@ test/
     ├── app_test.dart                  # Full app integration test
     ├── diary_flow_test.dart           # Log match → view diary → check stats
     ├── betting_flow_test.dart         # Log bet → settle → check ROI
-    └── group_flow_test.dart           # Create group → invite → predict → leaderboard
+    ├── group_flow_test.dart           # Create group → invite → predict → leaderboard
+    └── scan_flow_test.dart            # Scan slip → review → verify → truth score
 ```
 
 ---
@@ -556,6 +584,213 @@ void main() {
 
 ---
 
+## Verification Tests (OCR + Truth Score)
+
+### Truth Score Usecase Tests
+
+```dart
+// test/features/verification/domain/usecases/calculate_truth_score_test.dart
+void main() {
+  late CalculateTruthScore usecase;
+
+  setUp(() {
+    usecase = CalculateTruthScore();
+  });
+
+  group('CalculateTruthScore', () {
+    test('returns diamond tier for highly consistent, high-volume user', () {
+      final result = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 200,
+        verifiedSlips: 180,
+        consistentSlips: 175,
+        rejectedSlips: 5,
+        flaggedSlips: 0,
+        lastScanDate: DateTime.now().subtract(const Duration(days: 1)),
+      ));
+
+      expect(result.tier, TruthTier.diamond);
+      expect(result.truthScore, greaterThanOrEqualTo(90));
+    });
+
+    test('returns unverified for user with no scans', () {
+      final result = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 0,
+        verifiedSlips: 0,
+        consistentSlips: 0,
+        rejectedSlips: 0,
+        flaggedSlips: 0,
+        lastScanDate: DateTime.now(),
+      ));
+
+      expect(result.tier, TruthTier.unverified);
+      expect(result.truthScore, 0);
+    });
+
+    test('penalizes flagged slips heavily', () {
+      final clean = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 50,
+        verifiedSlips: 45,
+        consistentSlips: 44,
+        rejectedSlips: 0,
+        flaggedSlips: 0,
+        lastScanDate: DateTime.now(),
+      ));
+
+      final flagged = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 50,
+        verifiedSlips: 45,
+        consistentSlips: 44,
+        rejectedSlips: 5,
+        flaggedSlips: 10,
+        lastScanDate: DateTime.now(),
+      ));
+
+      expect(flagged.truthScore, lessThan(clean.truthScore));
+      expect(flagged.breakdown.flagPenalty, greaterThan(0));
+    });
+
+    test('recency score decays over time', () {
+      final recent = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 50,
+        verifiedSlips: 50,
+        consistentSlips: 50,
+        rejectedSlips: 0,
+        flaggedSlips: 0,
+        lastScanDate: DateTime.now().subtract(const Duration(days: 1)),
+      ));
+
+      final stale = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 50,
+        verifiedSlips: 50,
+        consistentSlips: 50,
+        rejectedSlips: 0,
+        flaggedSlips: 0,
+        lastScanDate: DateTime.now().subtract(const Duration(days: 45)),
+      ));
+
+      expect(stale.breakdown.recencyScore, lessThan(recent.breakdown.recencyScore));
+    });
+
+    test('score is clamped between 0 and 100', () {
+      final result = usecase.calculate(TruthScoreInput(
+        totalScannedSlips: 100,
+        verifiedSlips: 0,
+        consistentSlips: 0,
+        rejectedSlips: 50,
+        flaggedSlips: 50,
+        lastScanDate: DateTime.now().subtract(const Duration(days: 100)),
+      ));
+
+      expect(result.truthScore, greaterThanOrEqualTo(0));
+      expect(result.truthScore, lessThanOrEqualTo(100));
+    });
+  });
+}
+```
+
+### Bet Slip Parser Tests
+
+```dart
+// test/features/verification/data/bet9ja_parser_test.dart
+void main() {
+  late Bet9jaParser parser;
+
+  setUp(() {
+    parser = Bet9jaParser();
+  });
+
+  group('Bet9jaParser', () {
+    test('detects Bet9ja slip from raw OCR text', () {
+      final rawText = File('test/fixtures/ocr/bet9ja_single_bet.txt')
+          .readAsStringSync();
+      expect(parser.canParse(rawText), isTrue);
+    });
+
+    test('does not match non-Bet9ja text', () {
+      expect(parser.canParse('SportyBet ticket #12345'), isFalse);
+    });
+
+    test('extracts booking code', () {
+      final rawText = 'Bet9ja B9J-7K2X4 Arsenal vs Chelsea Home 1.85';
+      final result = parser.parse(rawText);
+      expect(result.slipCode, 'B9J-7K2X4');
+    });
+
+    test('extracts multiple selections from accumulator', () {
+      final rawText = File('test/fixtures/ocr/bet9ja_accumulator.txt')
+          .readAsStringSync();
+      final result = parser.parse(rawText);
+
+      expect(result.bets.length, greaterThan(1));
+      for (final bet in result.bets) {
+        expect(bet.matchDescription, isNotEmpty);
+        expect(bet.odds, greaterThan(0));
+      }
+    });
+
+    test('handles OCR noise in odds (l vs 1)', () {
+      final rawText = 'Arsenal vs Chelsea Home l.85 Stake: 1,000';
+      final result = parser.parse(rawText);
+      expect(result.bets.first.odds, closeTo(1.85, 0.01));
+    });
+  });
+}
+```
+
+### Fraud Detection Tests
+
+```dart
+// test/features/verification/domain/usecases/flag_suspicious_slip_test.dart
+void main() {
+  late FraudDetectionService service;
+
+  setUp(() {
+    service = FraudDetectionService();
+  });
+
+  group('FraudDetectionService', () {
+    test('flags duplicate images', () {
+      // Submit same image hash twice
+      final slip = FakeData.scannedSlip();
+      final imageFile = FakeData.testImage();
+
+      // First submission: no flag
+      final flags1 = service.analyze(slip, imageFile);
+      expect(flags1, isNot(contains(FraudFlag.duplicateImage)));
+
+      // Second submission with same hash: flagged
+      final flags2 = service.analyze(slip.copyWith(id: 'new_id'), imageFile);
+      expect(flags2, contains(FraudFlag.duplicateImage));
+    });
+
+    test('flags unrealistically high odds', () {
+      final slip = FakeData.scannedSlip(
+        extractedBets: [FakeData.extractedBet(odds: 100.0)],
+      );
+      final flags = service.analyze(slip, FakeData.testImage());
+      expect(flags, contains(FraudFlag.unrealisticOdds));
+    });
+
+    test('flags low OCR confidence', () {
+      final slip = FakeData.scannedSlip(ocrConfidence: 0.3);
+      final flags = service.analyze(slip, FakeData.testImage());
+      expect(flags, contains(FraudFlag.lowOcrConfidence));
+    });
+
+    test('does not flag clean slips', () {
+      final slip = FakeData.scannedSlip(
+        ocrConfidence: 0.95,
+        extractedBets: [FakeData.extractedBet(odds: 2.50)],
+      );
+      final flags = service.analyze(slip, FakeData.testImage());
+      expect(flags, isEmpty);
+    });
+  });
+}
+```
+
+---
+
 ## Test Fixtures (Sample JSON)
 
 ```json
@@ -671,6 +906,9 @@ flutter test --name "calculates correct win rate"
 - ✅ All formatters and validators
 - ✅ API response parsing (with fixture JSON files)
 - ✅ SyncQueue enqueue → replay cycle
+- ✅ OCR parser accuracy (per-bookmaker with fixture text files)
+- ✅ Truth Score computation (all weight factors and edge cases)
+- ✅ Fraud detection heuristics (each flag type independently)
 
 ### What CAN Skip Tests
 

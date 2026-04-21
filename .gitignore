@@ -1,0 +1,39 @@
+
+.env
+
+# Uncomment these if your repo is PUBLIC.
+# For a private repo, committing these is acceptable (they're not true firebase secrets).
+google-services.json
+GoogleService-Info.plist
+lib/firebase_options.dart
+
+**/Flutter/ephemeral/
+**/Pods/
+build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+.idea/
+*.iml
+*.swp
+*.swo
+# Note: .vscode/launch.json IS committed (contains no secrets, only --dart-define keys)
+
+*.apk
+*.aab
+*.ipa
+*.app.dSYM.zip
+
+
+coverage/
+*.lcov
+
+.DS_Store
+Thumbs.db

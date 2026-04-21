@@ -57,6 +57,54 @@
 | **Apple Sign-In** | Phase 1 | Required for iOS App Store. `firebase_auth` + `sign_in_with_apple` |
 | **JWT** | Phase 4 | Custom Spring Boot auth with `spring-boot-starter-security` |
 
+### Email Verification (Email/Password only)
+
+Google and Apple sign-ins are pre-verified by the provider. Email/Password accounts require explicit verification to prevent throwaway accounts from polluting leaderboards, Bookie Groups, and the Truth Score system.
+
+**Flow:**
+1. User registers with email/password → account created
+2. `sendEmailVerification()` called immediately → Firebase sends verification email
+3. User can use the app but sees a persistent banner: "Verify your email to unlock all features"
+4. On each app launch, `currentUser.reload()` is called to refresh the verified status
+5. Once `currentUser.emailVerified == true` → banner dismissed, full access granted
+
+**What's gated behind verification:**
+- Posting to the activity feed (Phase 2)
+- Joining or creating Bookie Groups (Phase 2)
+- Submitting predictions (Phase 2)
+- Scanning bet slips / Truth Score (Phase 3)
+
+**What's NOT gated** (works immediately after registration):
+- Logging matches and bets (core diary — always accessible)
+- Viewing personal stats
+
+This is the right balance: the app is immediately useful, but social and verification features require a real email.
+
+```dart
+// After createUserWithEmailAndPassword:
+Future<void> signUpWithEmail(String email, String password) async {
+  final credential = await _auth.createUserWithEmailAndPassword(
+    email: email,
+    password: password,
+  );
+  // Send verification email immediately
+  await credential.user?.sendEmailVerification();
+}
+
+// Check verification status on app resume / profile load:
+Future<bool> checkEmailVerified() async {
+  await _auth.currentUser?.reload(); // Refresh from Firebase
+  return _auth.currentUser?.emailVerified ?? false;
+}
+
+// Resend if user didn't receive it:
+Future<void> resendVerificationEmail() async {
+  await _auth.currentUser?.sendEmailVerification();
+}
+```
+
+**Note:** Google and Apple users always have `emailVerified = true` — Firebase sets this automatically for OAuth providers.
+
 ### Firebase Auth Implementation
 
 ```dart

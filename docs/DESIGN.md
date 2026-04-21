@@ -422,7 +422,90 @@ class MatchLogSpacing {
 └─────────────────────────────────────┘
 ```
 
-### 8. Bottom Navigation
+### 8. Bet Slip Scan Card
+
+```
+┌─────────────────────────────────────┐
+│  📸  SCANNED SLIP                   │
+│                                     │
+│  Bet9ja  ·  B9J-7K2X4              │  ← Bookmaker + slip code
+│                                     │
+│  Arsenal vs Chelsea    Home  @ 1.85 │
+│  Liverpool vs Man City O2.5  @ 1.45 │
+│  Real Madrid vs Barca  BTTS  @ 1.90 │
+│                                     │
+│  Total Odds: 4.82                   │
+│  Stake: ₦1,000  →  ₦4,820          │
+│                                     │
+│  ┌────────────┐  ┌────────────────┐ │
+│  │ ✅ VERIFIED │  │ OCR: 92%      │ │
+│  └────────────┘  └────────────────┘ │
+└─────────────────────────────────────┘
+```
+
+**Design Notes:**
+- Background: `surface` with bookmaker-colored left accent border
+- Verified badge in `success` green pill, Pending in `warning` amber, Flagged in `error` red
+- OCR confidence as a subtle percentage indicator
+- Each extracted bet on its own line with odds in `oddsDisplay` font
+- Tap → full slip detail view with original scanned image
+
+### 9. Truth Score Badge
+
+```
+┌───────────────────┐
+│  ┌─────────────┐  │
+│  │     💎      │  │  ← Tier icon (animated glow for diamond)
+│  │     92      │  │  ← Score number in `statNumber` font
+│  │  DIAMOND    │  │  ← Tier name
+│  └─────────────┘  │
+│                   │
+│  Verified: 156    │  ← Verified slip count
+│  Win Rate: 68%    │  ← Verified win rate
+│  ROI: +22.5%      │  ← Verified ROI
+└───────────────────┘
+```
+
+**Tier Visual Treatment:**
+
+| Tier | Score | Badge Color | Effect |
+|------|-------|-------------|--------|
+| **Unverified** | 0-29 | `textTertiary` grey | None |
+| **Bronze** | 30-54 | `#CD7F32` bronze | None |
+| **Silver** | 55-74 | `#C0C0C0` silver | Subtle shine |
+| **Gold** | 75-89 | `#FFD700` gold | Shimmer animation |
+| **Diamond** | 90-100 | `#B9F2FF` ice blue | Pulsing glow |
+
+### 10. Tipster Profile Card
+
+```
+┌─────────────────────────────────────┐
+│  ┌──────┐                           │
+│  │ 👤   │  Excel Nwachukwu          │
+│  │ 💎92 │  @trillionclues           │
+│  └──────┘                           │
+│                                     │
+│  ┌────────┐ ┌────────┐ ┌────────┐  │
+│  │  156   │ │  68%   │ │ +22.5% │  │
+│  │ Slips  │ │Win Rate│ │  ROI   │  │
+│  │Verified│ │Verified│ │Verified│  │
+│  └────────┘ └────────┘ └────────┘  │
+│                                     │
+│  📊 Breakdown:                      │
+│  Consistency ████████░░  82%        │
+│  Volume      ██████████  95%        │
+│  Recency     █████████░  91%        │
+│  Flag Penalty░░░░░░░░░░   0%        │
+└─────────────────────────────────────┘
+```
+
+**Design Notes:**
+- Truth Score badge sits on the user avatar
+- Verified stats in `success` color, clearly labeled "Verified" to distinguish from self-reported
+- Breakdown bars use `secondary` gradient fill
+- This component appears on: user profiles, leaderboards, tipster rankings
+
+### 11. Bottom Navigation
 
 ```
 ┌─────────────────────────────────────┐
@@ -683,6 +766,10 @@ Use **Lucide Icons** (`lucide_icons` package) for consistency:
 | Trend down | `LucideIcons.trendingDown` | Negative ROI |
 | Filter | `LucideIcons.filter` | Filter controls |
 | Bell | `LucideIcons.bell` | Notifications |
+| Scan | `LucideIcons.scan` | Bet slip scanner |
+| Shield check | `LucideIcons.shieldCheck` | Verified / Truth Score |
+| Badge check | `LucideIcons.badgeCheck` | Verified tipster |
+| Alert triangle | `LucideIcons.alertTriangle` | Flagged slip |
 
 ---
 
@@ -718,15 +805,18 @@ Use **Lucide Icons** (`lucide_icons` package) for consistency:
 | Screen | Key Components |
 |--------|---------------|
 | **Activity Feed** | Social cards, infinite scroll |
-| **User Profile (Other)** | Stats, recent activity, follow button |
+| **User Profile (Other)** | Stats, recent activity, follow button, Truth Score badge |
 | **Followers/Following** | User list, follow/unfollow actions |
 | **User Search** | Search bar, suggested users |
 | **Groups List** | Group cards, create button |
 | **Group Detail** | Members, predictions, leaderboard tabs |
 | **Create Group** | Name, privacy, league focus form |
 | **Prediction Board** | Upcoming fixtures, prediction inputs |
-| **Leaderboard** | Ranked member list, your position |
+| **Leaderboard** | Ranked member list, your position, Truth Score columns |
 | **Join Group** | Invite code input / deep link landing |
+| **Scan Bet Slip** | Camera capture, auto-crop, OCR processing overlay |
+| **Slip Review** | Editable OCR results, bookmaker correction, confirm/reject |
+| **My Scanned Slips** | List of all scanned slips with verification status |
 
 ### Phase 3
 
@@ -734,6 +824,8 @@ Use **Lucide Icons** (`lucide_icons` package) for consistency:
 |--------|---------------|
 | **AI Insights** | Insight cards, pattern visualizations |
 | **Prediction League** | Season standings, weekly round |
+| **Truth Score Profile** | Full breakdown, tier badge, verified stats |
+| **Tipster Rankings** | Public leaderboard sorted by Truth Score, filters |
 | **Subscription** | Tier comparison, IAP flow |
 | **Share Preview** | Generated card preview, share sheet |
 

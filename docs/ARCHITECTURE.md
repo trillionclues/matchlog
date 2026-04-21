@@ -12,6 +12,7 @@
 - [Spring Boot Architecture (Phase 4+)](#spring-boot-architecture-phase-4)
 - [Offline-First Strategy](#offline-first-strategy)
 - [Push Notification Architecture](#push-notification-architecture)
+- [Bet Slip Verification Architecture](#bet-slip-verification-architecture)
 - [Multi-Sport Plugin Architecture](#multi-sport-plugin-architecture)
 - [State Management](#state-management)
 
@@ -312,6 +313,39 @@ lib/
 │   │   │       └── calculate_scores.dart
 │   │   └── presentation/
 │   │
+│   ├── verification/                        # Phase 2-3 (Tipster Verification)
+│   │   ├── data/
+│   │   │   ├── verification_repository_impl.dart
+│   │   │   ├── verification_firebase_source.dart
+│   │   │   ├── verification_spring_source.dart
+│   │   │   └── ocr_service.dart             # Google ML Kit text recognition
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   │   ├── scanned_bet_slip.dart     # OCR-extracted bet slip data
+│   │   │   │   ├── truth_score.dart          # Computed verification rating
+│   │   │   │   └── verification_status.dart  # pending, verified, rejected, flagged
+│   │   │   ├── repositories/
+│   │   │   │   └── verification_repository.dart
+│   │   │   └── usecases/
+│   │   │       ├── scan_bet_slip.dart         # OCR pipeline: image → structured data
+│   │   │       ├── verify_bet_slip.dart       # Cross-reference with fixture results
+│   │   │       ├── calculate_truth_score.dart  # Aggregate verified data → score
+│   │   │       └── flag_suspicious_slip.dart   # Fraud heuristics
+│   │   └── presentation/
+│   │       ├── screens/
+│   │       │   ├── scan_slip_screen.dart       # Camera capture + crop
+│   │       │   ├── slip_review_screen.dart     # OCR results preview + edit
+│   │       │   ├── truth_score_screen.dart     # User's verification profile
+│   │       │   └── tipster_rankings_screen.dart # Public leaderboard by Truth Score
+│   │       ├── widgets/
+│   │       │   ├── slip_card.dart              # Scanned slip display
+│   │       │   ├── truth_score_badge.dart      # Score indicator widget
+│   │       │   ├── verification_status_chip.dart
+│   │       │   └── ocr_overlay.dart            # Camera viewfinder overlay
+│   │       └── providers/
+│   │           ├── verification_providers.dart
+│   │           └── truth_score_providers.dart
+│   │
 │   └── year_review/                         # Phase 1.5
 │       ├── data/
 │       │   └── review_generator.dart        # Aggregates user data
@@ -439,10 +473,58 @@ follows/{followId}
   ├── followingId: string
   └── createdAt: timestamp
 
+bet_slip_scans/{scanId}
+  ├── userId: string
+  ├── imageUrl: string                   # Firebase Storage URL of original photo
+  ├── bookmaker: string                  # Detected or user-corrected bookmaker
+  ├── slipCode: string?                  # Bet slip code/ticket ID (if detected)
+  ├── extractedBets: [                   # Array of bets parsed from the slip
+  │     {
+  │       matchDescription: string,      # "Arsenal vs Chelsea"
+  │       prediction: string,            # "Home Win"
+  │       odds: number,
+  │       fixtureId: string?             # Matched to API fixture (if found)
+  │     }
+  │   ]
+  ├── totalOdds: number?                 # Accumulator total odds
+  ├── stake: number
+  ├── potentialPayout: number
+  ├── currency: string
+  ├── status: "pending" | "verified" | "rejected" | "flagged"
+  ├── verifiedAt: timestamp?             # When the results were cross-referenced
+  ├── won: bool?                         # Overall slip result
+  ├── actualPayout: number?              # Actual payout (verified against results)
+  ├── linkedBetEntryId: string?          # Auto-created BetEntry from this scan
+  ├── ocrConfidence: number              # 0-1 confidence score from ML Kit
+  ├── rawOcrText: string                 # Full OCR output for debugging
+  ├── fraudFlags: string[]               # ["duplicate_image", "metadata_mismatch", etc.]
+  ├── createdAt: timestamp
+  └── updatedAt: timestamp
+
+truth_scores/{userId}
+  ├── userId: string
+  ├── totalScannedSlips: int
+  ├── verifiedSlips: int
+  ├── rejectedSlips: int
+  ├── flaggedSlips: int
+  ├── verifiedWins: int
+  ├── verifiedLosses: int
+  ├── verifiedWinRate: double            # Based ONLY on verified data
+  ├── verifiedRoi: double                # ROI from verified slips only
+  ├── truthScore: int                    # 0-100 composite score
+  ├── tier: "unverified" | "bronze" | "silver" | "gold" | "diamond"
+  ├── lastUpdated: timestamp
+  └── breakdown: {
+        scanConsistency: double,          # How often scans match claimed results
+        volumeScore: double,              # More verified data = higher score
+        recencyScore: double,             # Recent verification activity
+        flagPenalty: double               # Deduction for flagged/rejected slips
+      }
+
 activity_feed/{activityId}
   ├── userId: string                   # Who performed the action
-  ├── type: "match_logged" | "bet_placed" | "prediction_made" | "bet_settled" | "review_posted"
-  ├── referenceId: string              # ID of the match/bet/prediction
+  ├── type: "match_logged" | "bet_placed" | "prediction_made" | "bet_settled" | "review_posted" | "slip_verified"
+  ├── referenceId: string              # ID of the match/bet/prediction/scan
   ├── summary: string                  # "Excel logged Arsenal vs Chelsea ⭐⭐⭐⭐"
   ├── createdAt: timestamp
   └── targetUserIds: string[]          # Followers who should see this (fan-out-on-write)
@@ -506,11 +588,15 @@ matchlog-storage/
 ├── users/{userId}/
 │   ├── profile/
 │   │   └── avatar.jpg
-│   └── match_photos/
-│       └── {entryId}/
-│           ├── photo_1.jpg
-│           ├── photo_2.jpg
-│           └── photo_3.jpg
+│   ├── match_photos/
+│   │   └── {entryId}/
+│   │       ├── photo_1.jpg
+│   │       ├── photo_2.jpg
+│   │       └── photo_3.jpg
+│   └── bet_slips/                     # Scanned bet slip images
+│       └── {scanId}/
+│           ├── original.jpg            # Raw camera capture
+│           └── cropped.jpg             # Auto-cropped bet slip region
 └── groups/{groupId}/
     └── cover.jpg
 ```
@@ -541,12 +627,15 @@ matchlog-api/
 │   │   ├── SocialController.java         # Follow, feed, profiles
 │   │   ├── GroupController.java          # Bookie Groups
 │   │   ├── PredictionController.java     # Predictions + leagues
+│   │   ├── VerificationController.java   # Bet slip scan + Truth Score
 │   │   └── NotificationController.java   # Preferences
 │   ├── dto/                              # Request/Response objects
 │   ├── entity/                           # JPA entities
 │   ├── repository/                       # Spring Data JPA
 │   ├── service/                          # Business logic
 │   │   ├── MatchResultUpdater.java       # @Scheduled background worker
+│   │   ├── BetSlipVerifier.java          # @Scheduled: verify pending scans against results
+│   │   ├── TruthScoreCalculator.java     # Recompute Truth Scores on new verified data
 │   │   ├── NotificationDispatcher.java   # FCM push via Admin SDK
 │   │   └── AiInsightService.java         # Gemini Flash
 │   ├── exception/                        # Global error handling
@@ -706,6 +795,242 @@ Trigger (match starts, bet settles, friend posts)
 | `social_activity` | Friend Activity | Default | No | None |
 | `weekly_digest` | Weekly Digest | Low | No | None |
 | `ai_insights` | AI Insights | Default | No | Default |
+
+---
+
+## Bet Slip Verification Architecture
+
+### Why This Matters
+
+"Tipsters" on Twitter and WhatsApp post screenshots of won betting tickets. These are trivially photoshopped. There is **no way to verify a tipster's actual ROI**. MatchLog solves this with **Proof of Stake** — OCR-scanned bet slips cross-referenced against real match results.
+
+### OCR Pipeline
+
+```
+User taps "Scan Bet Slip"
+    │
+    ▼
+┌─────────────────────┐
+│ Camera Capture       │  ← image_picker + camera2
+│ + Auto-Crop          │  ← Edge detection via ML Kit
+└──────────┬──────────┘
+           │
+    ┌──────┴──────┐
+    │ Google ML    │
+    │ Kit Text     │  ← On-device OCR (offline-capable)
+    │ Recognition  │
+    └──────┬──────┘
+           │
+    ┌──────┴──────────────────┐
+    │ BetSlipParser            │  ← Bookmaker-specific parsers
+    │ ┌──────────────────────┐ │
+    │ │ Bet9jaParser         │ │
+    │ │ SportyBetParser      │ │
+    │ │ BetKingParser        │ │
+    │ │ GenericParser        │ │  ← Fallback for unknown formats
+    │ └──────────────────────┘ │
+    └──────────┬──────────────┘
+               │
+    ┌──────────┴──────────┐
+    │ User Review Screen    │  ← User corrects any OCR errors
+    │ (editable fields)     │
+    └──────────┬──────────┘
+               │
+    ┌──────────┴──────────┐
+    │ Save to Drift (local) │  ← Immediate persistence
+    │ + Queue Sync          │
+    └──────────┬──────────┘
+               │
+    ┌──────────┴──────────────────┐
+    │ Fixture Matcher               │  ← Match "Arsenal vs Chelsea" → fixtureId
+    │ (TheSportsDB fuzzy search)    │
+    └──────────┬──────────────────┘
+               │
+    ┌──────────┴──────────┐
+    │ Upload image to       │
+    │ Firebase Storage      │
+    └──────────┬──────────┘
+               │
+    ┌──────────┴──────────┐
+    │ Create BetEntry from  │  ← Auto-log bet from scanned data
+    │ scanned data          │
+    └───────────────────────┘
+```
+
+### Bookmaker-Specific Parsers
+
+```dart
+// features/verification/data/parsers/
+
+abstract class BetSlipParser {
+  /// Bookmaker identifier
+  String get bookmakerKey;
+
+  /// Detect if this parser can handle the given OCR text
+  bool canParse(String rawText);
+
+  /// Parse structured data from raw OCR text
+  ParsedBetSlip parse(String rawText);
+}
+
+class Bet9jaParser extends BetSlipParser {
+  @override String get bookmakerKey => 'bet9ja';
+
+  @override
+  bool canParse(String rawText) {
+    // Detect Bet9ja-specific patterns: "Bet9ja", booking codes, etc.
+    return rawText.toLowerCase().contains('bet9ja') ||
+           RegExp(r'B9J-[A-Z0-9]+').hasMatch(rawText);
+  }
+
+  @override
+  ParsedBetSlip parse(String rawText) {
+    // Extract:
+    // - Booking code (B9J-XXXXX)
+    // - Individual selections (match + market + odds)
+    // - Total odds
+    // - Stake / potential payout
+    final bookingCode = _extractBookingCode(rawText);
+    final selections = _extractSelections(rawText);
+    final totalOdds = _extractTotalOdds(rawText);
+    final stake = _extractStake(rawText);
+
+    return ParsedBetSlip(
+      bookmaker: 'bet9ja',
+      slipCode: bookingCode,
+      bets: selections,
+      totalOdds: totalOdds,
+      stake: stake,
+      potentialPayout: stake * totalOdds,
+    );
+  }
+}
+
+// Registry
+class BetSlipParserRegistry {
+  final List<BetSlipParser> _parsers = [
+    Bet9jaParser(),
+    SportyBetParser(),
+    BetKingParser(),
+    OneXBetParser(),
+    GenericBetSlipParser(), // Fallback
+  ];
+
+  BetSlipParser getParser(String rawText) {
+    return _parsers.firstWhere(
+      (p) => p.canParse(rawText),
+      orElse: () => GenericBetSlipParser(),
+    );
+  }
+}
+```
+
+### Truth Score Computation
+
+```dart
+class CalculateTruthScore {
+  /// Compute a 0-100 composite score from verified bet data
+  TruthScore calculate(TruthScoreInput input) {
+    // 1. Scan Consistency (40% weight)
+    // How often do scan results match the actual outcomes?
+    final scanConsistency = input.verifiedSlips > 0
+        ? (input.consistentSlips / input.verifiedSlips) * 100
+        : 0.0;
+
+    // 2. Volume Score (25% weight)
+    // More verified data = more trustworthy
+    // Logarithmic scale: diminishing returns past 50 slips
+    final volumeScore = min(100, (log(input.verifiedSlips + 1) / log(51)) * 100);
+
+    // 3. Recency Score (20% weight)
+    // Recent verification activity matters more
+    final daysSinceLastScan = DateTime.now().difference(input.lastScanDate).inDays;
+    final recencyScore = max(0, 100 - (daysSinceLastScan * 2)); // Decays over ~50 days
+
+    // 4. Flag Penalty (15% weight, subtracted)
+    // Flagged or rejected slips reduce trust
+    final flagPenalty = input.totalScannedSlips > 0
+        ? ((input.flaggedSlips + input.rejectedSlips) / input.totalScannedSlips) * 100
+        : 0.0;
+
+    // Composite score
+    final rawScore = (scanConsistency * 0.40)
+                   + (volumeScore * 0.25)
+                   + (recencyScore * 0.20)
+                   - (flagPenalty * 0.15);
+
+    final truthScore = rawScore.clamp(0, 100).round();
+
+    // Tier assignment
+    final tier = switch (truthScore) {
+      >= 90 => TruthTier.diamond,
+      >= 75 => TruthTier.gold,
+      >= 55 => TruthTier.silver,
+      >= 30 => TruthTier.bronze,
+      _     => TruthTier.unverified,
+    };
+
+    return TruthScore(
+      score: truthScore,
+      tier: tier,
+      breakdown: TruthScoreBreakdown(
+        scanConsistency: scanConsistency,
+        volumeScore: volumeScore,
+        recencyScore: recencyScore,
+        flagPenalty: flagPenalty,
+      ),
+    );
+  }
+}
+```
+
+### Fraud Detection Heuristics
+
+```dart
+class FraudDetectionService {
+  /// Run all heuristic checks on a scanned slip
+  List<FraudFlag> analyze(ScannedBetSlip slip, File imageFile) {
+    final flags = <FraudFlag>[];
+
+    // 1. Duplicate Image Detection
+    //    Hash the image and compare against previous submissions
+    final imageHash = _perceptualHash(imageFile);
+    if (_isDuplicateHash(imageHash, slip.userId)) {
+      flags.add(FraudFlag.duplicateImage);
+    }
+
+    // 2. EXIF Metadata Mismatch
+    //    Check if photo timestamp is consistent with match dates
+    final exifDate = _extractExifDate(imageFile);
+    if (exifDate != null && exifDate.isBefore(slip.earliestKickoff)) {
+      flags.add(FraudFlag.metadataMismatch);
+    }
+
+    // 3. OCR Confidence Threshold
+    //    If ML Kit confidence is too low, text may be manipulated
+    if (slip.ocrConfidence < 0.6) {
+      flags.add(FraudFlag.lowOcrConfidence);
+    }
+
+    // 4. Odds Anomaly
+    //    Compare scanned odds against market odds (if available from Odds API)
+    for (final bet in slip.extractedBets) {
+      if (bet.odds > 50.0) {
+        flags.add(FraudFlag.unrealisticOdds);
+      }
+    }
+
+    // 5. Win Rate Anomaly
+    //    Statistical impossibility check
+    //    e.g., 50+ consecutive wins on high-odds bets
+    if (_checkStatisticalAnomaly(slip.userId)) {
+      flags.add(FraudFlag.statisticalAnomaly);
+    }
+
+    return flags;
+  }
+}
+```
 
 ---
 

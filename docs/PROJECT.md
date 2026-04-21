@@ -20,6 +20,7 @@ MatchLog is a mobile-first platform where sports fans log matches they've watche
 | **No match diary exists** | Letterboxd (movies), Untappd (beer), Goodreads (books) — nothing equivalent for sports. |
 | **Betting apps are transactional** | They process bets. They don't help you understand your betting patterns or connect with friends. |
 | **No social layer for match-going fans** | Stadium check-ins, photo uploads, match reviews — all live in random WhatsApp groups and Instagram stories. |
+| **Fake tipsters are unchecked** | "Tipsters" flood Twitter/WhatsApp with photoshopped won tickets. No way to verify a tipster's actual ROI. Users get scammed following unverified predictions. |
 
 ---
 
@@ -34,6 +35,8 @@ MatchLog is a mobile-first platform where sports fans log matches they've watche
 4. **Offline-first.** Target users are in African markets with unreliable connectivity. Every core action works offline and syncs when connected.
 
 5. **Low price, high adoption.** Pro at $1.99/mo and Crew at $2.99/mo — priced to acquire users in price-sensitive markets. Volume over margin.
+
+6. **Verified truth over clout.** Any user can claim a 90% win rate. MatchLog verifies it with scanned bet slips and computed Truth Scores. Trust is earned through data, not screenshots.
 
 ---
 
@@ -72,8 +75,8 @@ MatchLog is a mobile-first platform where sports fans log matches they've watche
 |-------|----------|---------|
 | **Phase 1** | Weeks 1–6 | Core Flutter + Firebase → Google Play + TestFlight |
 | **Phase 1.5** | Weeks 7–8 | Stadium check-in, push notifications, calendar heatmap, social cards |
-| **Phase 2** | Weeks 9–12 | Social layer, Bookie Groups, predictions |
-| **Phase 3** | Weeks 13–16 | AI insights, Prediction Leagues, monetization, polish |
+| **Phase 2** | Weeks 9–12 | Social layer, Bookie Groups, predictions, bet slip OCR scan |
+| **Phase 3** | Weeks 13–16 | AI insights, Prediction Leagues, Truth Score system, monetization, polish |
 | **Phase 4** | Weeks 17–24 | Spring Boot backend rebuild (Java roadmap) |
 | **Phase 5** | Weeks 25+ | Docker orchestration, CI/CD, monitoring |
 
@@ -104,6 +107,7 @@ MatchLog is a mobile-first platform where sports fans log matches they've watche
 | **FPL** | Premier League fantasy | Single league, rigid rules. MatchLog = any league, any sport, flexible scoring. |
 | **Strava** | Social fitness tracking | Proven model for sports — we apply it to watching, not running. |
 | **Letterboxd** | Social movie diary | Proven model for media — we apply it to sports. |
+| **Twitter/WhatsApp tipsters** | Post "won ticket" screenshots | Unverified, easily faked. MatchLog = verified ROI via OCR-scanned bet slips + computed Truth Score. |
 
 ---
 

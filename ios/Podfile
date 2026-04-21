@@ -1,0 +1,151 @@
+# Minimum iOS version for MatchLog.
+# Firebase requires 13.0+. Xcode 26 (Clang 17+) requires 13.0+ for modern compiler flags.
+platform :ios, '13.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+def replace_framework_import_with_module_fallback(file_path, framework)
+  return unless File.exist?(file_path)
+
+  import_line = "#import <#{framework}/#{framework}.h>"
+  replacement = <<~IMPORT.chomp
+    #if __has_include(<#{framework}/#{framework}.h>)
+    #import <#{framework}/#{framework}.h>
+    #else
+    @import #{framework};
+    #endif
+  IMPORT
+
+  content = File.read(file_path)
+  return if content.include?(replacement)
+  return unless content.include?(import_line)
+
+  File.write(file_path, content.sub(import_line, replacement))
+  Pod::UI.puts "Patched #{File.basename(file_path)} to use #{framework} module fallback"
+end
+
+def remove_unused_framework_import(file_path, framework)
+  return unless File.exist?(file_path)
+
+  import_line = "#import <#{framework}/#{framework}.h>"
+  content = File.read(file_path)
+  return unless content.include?(import_line)
+
+  File.write(file_path, content.gsub("#{import_line}\n", ''))
+  Pod::UI.puts "Removed unused #{framework} import from #{File.basename(file_path)}"
+end
+
+def patch_flutterfire_ios_imports(installer)
+  plugin_roots = %w[firebase_storage firebase_auth].map do |plugin|
+    File.expand_path("../.symlinks/plugins/#{plugin}/ios", installer.sandbox.root.to_s)
+  end
+
+  plugin_roots.each do |plugin_root|
+    next unless Dir.exist?(plugin_root)
+
+    Dir.glob(File.join(plugin_root, 'Classes', '**', '*.{h,m}')).each do |file_path|
+      replace_framework_import_with_module_fallback(file_path, 'FirebaseStorage')
+      %w[FirebaseMessaging FirebaseAnalytics FirebaseInstallations].each do |framework|
+        remove_unused_framework_import(file_path, framework)
+      end
+    end
+  end
+end
+
+target 'Runner' do
+  use_frameworks! :linkage => :static
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  patch_flutterfire_ios_imports(installer)
+
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # Force all pods to iOS 13.0 minimum.
+    # Xcode 26 (Clang 17+) rejects the -G compiler flag on targets below 13.0.
+    target.build_configurations.each do |config|
+      current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      if current.nil? || current.to_f < 13.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      end
+
+      # Allow non-modular headers in framework modules (Firebase compatibility).
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      config.build_settings['ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
+
+    installer.generated_projects.each do |project|
+      project.targets.each do |proj_target|
+        proj_target.build_configurations.each do |config|
+          config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+          config.build_settings['ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        end
+      end
+    end
+
+    # Remove the unsupported -G flag from BoringSSL-GRPC compiler flags.
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          flags.reject! { |flag| flag.start_with?('-G') && flag.length > 2 }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
+
+    # Patch gRPC pods for Xcode 26 / Clang 17+ compatibility.
+    # Clang 17 enforces stricter dependent-name lookup rules (C++20 DR).
+    # CheckResultAndRunNext<Wrapped> needs the 'template' disambiguator
+    # because it has an explicit template argument list in a dependent context.
+    # CallSeqFactory does NOT need it (no template argument list).
+    if ['gRPC-Core', 'gRPC-C++'].include?(target.name)
+      basic_seq = "#{installer.sandbox.root}/#{target.name}/src/core/lib/promise/detail/basic_seq.h"
+      if File.exist?(basic_seq)
+        content = File.read(basic_seq)
+        patched = content
+        # Ensure CheckResultAndRunNext HAS the template keyword (it has <Wrapped> args).
+        patched = patched.gsub('Traits::CheckResultAndRunNext', 'Traits::template CheckResultAndRunNext')
+        # Fix double-application: template template → template
+        patched = patched.gsub('Traits::template template CheckResultAndRunNext', 'Traits::template CheckResultAndRunNext')
+        # Remove template keyword from CallSeqFactory (no template argument list).
+        patched = patched.gsub('Traits::template CallSeqFactory', 'Traits::CallSeqFactory')
+        if content != patched
+          File.write(basic_seq, patched)
+          puts "Patched #{target.name}/basic_seq.h for Xcode 26 / Clang 17 compatibility"
+        end
+      end
+    end
+  end
+end

@@ -14,7 +14,8 @@
 | **Firebase Cloud Firestore** | Database | 50K reads/day free | Phase 1 |
 | **Firebase Cloud Messaging** | Push notifications | Unlimited | Phase 1.5 |
 | **Firebase Storage** | Image uploads | 5GB free | Phase 1 |
-| **Gemini 2.5 Flash** | AI betting insights, notification copy | Free tier generous | Phase 3 |
+| **Google ML Kit** | On-device OCR for bet slip scanning | Free (on-device) | Phase 2 |
+| **Gemini 2.5 Flash** | AI betting insights, notification copy, OCR assist | Free tier generous | Phase 3 |
 | **The Odds API** | Pre-match odds, 20+ bookmakers | 500 req/month | Phase 3+ (optional) |
 | **API-Basketball** | NBA/EuroLeague fixtures | 100 req/day | Phase 4+ |
 | **Ergast / OpenF1** | F1 race data | Free, unlimited | Phase 4+ |
@@ -249,6 +250,8 @@ GET /standings?league={leagueId}&season=2025
 | **AI-Moderated Notifications** | User context + trigger → "Generate a personalized push notification" | Phase 1.5 |
 | **Match Recommendations** | User's watch history → "Which upcoming matches would this user enjoy?" | Phase 3 |
 | **Year in Review Copy** | User's annual stats → "Write a fun, engaging summary paragraph" | Phase 1.5 |
+| **OCR Assist (Bet Slip)** | Raw OCR text → "Extract structured bet details from this text" | Phase 2-3 |
+| **Fraud Analysis** | Scan history + patterns → "Flag statistically anomalous betting histories" | Phase 3 |
 
 ### Implementation
 
@@ -346,6 +349,154 @@ class AiInsightService {
 | 50,000 | ~25,000 | ~$25 |
 
 Negligible cost at any scale we'd realistically reach.
+
+---
+
+## Google ML Kit (On-Device OCR)
+
+### Purpose
+
+On-device text recognition for scanning physical and digital bet slips. **No network required** — OCR runs entirely on the user's device via Google ML Kit's text recognition v2.
+
+### Why On-Device
+
+| Consideration | On-Device (ML Kit) | Cloud OCR |
+|--------------|-------------------|-----------|
+| **Cost** | Free | Per-request pricing |
+| **Latency** | ~200ms | 1-3 seconds |
+| **Offline** | ✅ Works offline | ❌ Requires network |
+| **Privacy** | Images never leave device | Images uploaded to cloud |
+| **Accuracy** | Good for printed text | Slightly better for handwriting |
+
+### Dependencies
+
+```yaml
+# pubspec.yaml
+dependencies:
+  google_mlkit_text_recognition: ^0.13.0  # On-device OCR
+  image_picker: ^1.1.0                    # Camera/gallery capture
+  image_cropper: ^8.0.0                   # Manual crop adjustment
+  image: ^4.2.0                           # Image processing utilities
+```
+
+### Implementation
+
+```dart
+// features/verification/data/ocr_service.dart
+
+class OcrService {
+  final TextRecognizer _recognizer = TextRecognizer(
+    script: TextRecognitionScript.latin,
+  );
+
+  /// Process an image and return structured OCR results
+  Future<OcrResult> recognizeText(File imageFile) async {
+    final inputImage = InputImage.fromFile(imageFile);
+    final recognizedText = await _recognizer.processImage(inputImage);
+
+    // Calculate overall confidence
+    final allElements = recognizedText.blocks
+        .expand((b) => b.lines)
+        .expand((l) => l.elements);
+    final avgConfidence = allElements.isEmpty
+        ? 0.0
+        : allElements.map((e) => e.confidence ?? 0).reduce((a, b) => a + b) /
+            allElements.length;
+
+    return OcrResult(
+      fullText: recognizedText.text,
+      blocks: recognizedText.blocks.map((b) => OcrBlock(
+        text: b.text,
+        boundingBox: b.boundingBox,
+        lines: b.lines.map((l) => l.text).toList(),
+      )).toList(),
+      confidence: avgConfidence,
+    );
+  }
+
+  /// Detect which bookmaker this slip belongs to
+  String? detectBookmaker(String rawText) {
+    final lower = rawText.toLowerCase();
+    if (lower.contains('bet9ja') || RegExp(r'b9j', caseSensitive: false).hasMatch(lower)) {
+      return 'bet9ja';
+    }
+    if (lower.contains('sportybet') || lower.contains('sporty bet')) return 'sportybet';
+    if (lower.contains('betking') || lower.contains('bet king')) return 'betking';
+    if (lower.contains('1xbet')) return '1xbet';
+    if (lower.contains('msport')) return 'msport';
+    if (lower.contains('bet365')) return 'bet365';
+    if (lower.contains('betway')) return 'betway';
+    return null; // Unknown — user selects manually
+  }
+
+  void dispose() {
+    _recognizer.close();
+  }
+}
+```
+
+### Gemini-Assisted Extraction (Fallback)
+
+When ML Kit OCR produces ambiguous results, Gemini 2.5 Flash is used to extract structured data from the raw text:
+
+```dart
+/// Fallback: use Gemini to parse messy OCR output into structured bets
+Future<ParsedBetSlip> geminiAssistedParse(String rawOcrText) async {
+  final prompt = '''
+  Extract structured bet slip data from this OCR text.
+  The text was scanned from a betting slip photo and may have OCR errors.
+
+  Raw OCR text:
+  $rawOcrText
+
+  Extract and return as JSON:
+  {
+    "bookmaker": "detected bookmaker name or null",
+    "slipCode": "booking/ticket code or null",
+    "bets": [
+      {
+        "matchDescription": "Team A vs Team B",
+        "prediction": "Home Win / Over 2.5 / BTTS etc",
+        "odds": 1.50
+      }
+    ],
+    "totalOdds": 5.25,
+    "stake": 1000,
+    "currency": "NGN",
+    "potentialPayout": 5250
+  }
+
+  Rules:
+  - Fix obvious OCR errors in team names (e.g. "Arsenai" → "Arsenal")
+  - If odds look like "l.50", interpret as "1.50"
+  - Return null for fields you cannot determine
+  ''';
+
+  final response = await _geminiService.generateContent(prompt,
+    responseMimeType: 'application/json',
+  );
+  return ParsedBetSlip.fromJson(jsonDecode(response));
+}
+```
+
+### Processing Pipeline
+
+```
+Image Captured
+    │
+    ▼
+ML Kit OCR → Raw Text (confidence score)
+    │
+    ├─── confidence ≥ 0.75 ───→ BetSlipParser (bookmaker-specific)
+    │                                │
+    │                                ▼
+    │                           Structured Data → User Review Screen
+    │
+    └─── confidence < 0.75 ───→ Gemini Flash (AI-assisted extraction)
+                                     │
+                                     ▼
+                                Structured Data → User Review Screen
+```
 
 ---
 

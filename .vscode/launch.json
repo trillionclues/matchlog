@@ -1,0 +1,49 @@
+{
+  // VS Code launch configurations for MatchLog.
+  // The "args" array passes --dart-define flags for IDE run/debug button.
+  //
+  // All secret values live in .env (gitignored).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Primary: Staging debug
+      "name": "MatchLog (staging)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=ENV=staging",
+        "--dart-define=FOOTBALL_API_KEY=1",
+        "--dart-define=FOOTBALL_API_URL=https://www.thesportsdb.com/api/v1/json",
+        "--dart-define=GEMINI_API_KEY="
+      ]
+    },
+    {
+      // Staging profile (performance testing)
+      "name": "MatchLog (staging, profile)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "args": [
+        "--dart-define=ENV=staging",
+        "--dart-define=FOOTBALL_API_KEY=1",
+        "--dart-define=FOOTBALL_API_URL=https://www.thesportsdb.com/api/v1/json",
+        "--dart-define=GEMINI_API_KEY="
+      ]
+    },
+    {
+      // Production release build (local test before store submission)
+      // Replace FOOTBALL_API_KEY with prod key before using
+      "name": "MatchLog (prod, release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--dart-define=ENV=prod",
+        "--dart-define=FOOTBALL_API_KEY=1",
+        "--dart-define=FOOTBALL_API_URL=https://www.thesportsdb.com/api/v1/json",
+        "--dart-define=GEMINI_API_KEY="
+      ]
+    }
+  ]
+}
