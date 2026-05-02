@@ -52,20 +52,20 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: MatchLogColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0, -0.2),
-                radius: 1.0,
+                center: const Alignment(-0.3, -0.6),
+                radius: 1.4,
                 colors: [
-                  MatchLogColors.primary.withValues(alpha: 0.12),
-                  MatchLogColors.background,
+                  MatchLogColors.textSecondary.withValues(alpha: 0.12),
+                  colorScheme.surface,
                 ],
               ),
             ),
@@ -74,48 +74,48 @@ class _SplashScreenState extends State<SplashScreen>
             child: Padding(
               padding: MatchLogSpacing.screenPadding,
               child: FadeTransition(
-            opacity: _fadeIn,
-            child: SlideTransition(
-              position: _slideUp,
-              child: ScaleTransition(
-                scale: _scale,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const MatchLogBrandMark(width: 120, height: 108),
-                    const SizedBox(height: MatchLogSpacing.xl),
-                    Text(
-                      'MatchLog',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.8,
-                        color: MatchLogColors.textPrimary,
-                      ),
+                opacity: _fadeIn,
+                child: SlideTransition(
+                  position: _slideUp,
+                  child: ScaleTransition(
+                    scale: _scale,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const MatchLogBrandMark(width: 120, height: 108),
+                        const SizedBox(height: MatchLogSpacing.xl),
+                        Text(
+                          'MatchLog',
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                          ),
+                        ),
+                        const SizedBox(height: MatchLogSpacing.sm),
+                        Text(
+                          'Track the match. Log the story.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.55),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: MatchLogSpacing.xxxl),
+                        if (widget.hasError)
+                          _ErrorFooter(onRetry: widget.onRetry)
+                        else
+                          const _LoadingDots(color: MatchLogColors.primary),
+                      ],
                     ),
-                    const SizedBox(height: MatchLogSpacing.sm),
-                    Text(
-                      'Track the match. Log the story.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: MatchLogColors.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: MatchLogSpacing.xxxl),
-                    if (widget.hasError)
-                      _ErrorFooter(onRetry: widget.onRetry)
-                    else
-                      const _LoadingDots(color: MatchLogColors.primary),
-                  ],
-                ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }
 
 class _LoadingDots extends StatefulWidget {
@@ -179,6 +179,7 @@ class _ErrorFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -186,7 +187,7 @@ class _ErrorFooter extends StatelessWidget {
         Text(
           'Something went wrong',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: MatchLogColors.textSecondary,
+            color: colorScheme.onSurface.withValues(alpha: 0.55),
           ),
           textAlign: TextAlign.center,
         ),

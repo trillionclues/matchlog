@@ -136,12 +136,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.login,
         name: 'login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: LoginScreen()),
       ),
       GoRoute(
         path: Routes.register,
         name: 'register',
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: RegisterScreen()),
       ),
       GoRoute(
         path: Routes.diary,
