@@ -1,12 +1,12 @@
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/spacing.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/snackbar.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/auth_form.dart';
 import '../widgets/social_login_button.dart';
@@ -38,36 +38,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               email: _emailController.text.trim(),
               password: _passwordController.text,
             );
-    _showError(result);
+    _handleResult(result);
   }
 
   Future<void> _submitGoogleLogin() async {
     final result =
         await ref.read(authControllerProvider.notifier).signInWithGoogle();
-    _showError(result);
+    _handleResult(result);
   }
 
   Future<void> _submitAppleLogin() async {
     // TODO: Implement Apple Sign-In via FirebaseAuthSource
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Apple Sign-In coming soon.')),
-    );
+    MatchLogSnackBar.info(context, 'Apple Sign-In coming soon.');
   }
 
-  void _showError(AuthActionResult result) {
+  void _handleResult(AuthActionResult result) {
     if (!mounted || result.isSuccess || result.isCancelled) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message ?? 'Authentication failed.')),
+    MatchLogSnackBar.error(
+      context,
+      result.message ?? 'Authentication failed.',
     );
-  }
-
-  Future<void> _previewOnboarding() async {
-    await ref.read(authControllerProvider.notifier).resetOnboarding();
-    if (!mounted) {
-      return;
-    }
-    context.go(Routes.onboarding);
   }
 
   @override

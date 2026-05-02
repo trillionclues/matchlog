@@ -53,7 +53,10 @@ class _AuthLifecycleScopeState extends ConsumerState<_AuthLifecycleScope>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(checkEmailVerifiedProvider).call();
+      final user = ref.read(authStateProvider).valueOrNull;
+      if (user != null && !user.emailVerified) {
+        ref.read(checkEmailVerifiedProvider).call();
+      }
     }
   }
 

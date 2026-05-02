@@ -160,6 +160,10 @@ class AuthForm extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.onSurface,
                                 foregroundColor: colorScheme.surface,
+                                disabledBackgroundColor: colorScheme.onSurface
+                                    .withValues(alpha: 0.12),
+                                disabledForegroundColor: colorScheme.onSurface
+                                    .withValues(alpha: 0.38),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: MatchLogSpacing.roundedFull,
                                 ),

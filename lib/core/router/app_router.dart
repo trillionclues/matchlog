@@ -46,15 +46,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final onboardingComplete = onboardingState.valueOrNull ?? false;
       final user = authState.valueOrNull;
 
-      if (startupReady.isLoading) {
+      if (startupReady.isLoading && !startupReady.hasValue) {
         return isLoadingRoute ? null : Routes.loading;
       }
 
-      if (startupReady.hasError) {
+      if (startupReady.hasError && !startupReady.hasValue) {
         return isLoadingRoute ? null : Routes.loading;
       }
 
-      if (authState.isLoading || onboardingState.isLoading) {
+      // Only redirect to loading during a genuine cold start (no value yet).
+      // When the auth stream refreshes (e.g. Google Sign-In cancelled),
+      // isLoading is true but valueOrNull still holds the previous value.
+      // Bouncing to splash in that case causes a flash.
+      final authColdLoading = authState.isLoading && !authState.hasValue;
+      final onboardingColdLoading =
+          onboardingState.isLoading && !onboardingState.hasValue;
+
+      if (authColdLoading || onboardingColdLoading) {
         return isLoadingRoute ? null : Routes.loading;
       }
 
