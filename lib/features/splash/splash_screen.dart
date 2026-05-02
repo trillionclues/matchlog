@@ -3,7 +3,6 @@ library;
 import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
-import '../../core/theme/typography.dart';
 import '../../shared/widgets/brand_mark.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -52,12 +51,25 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: MatchLogColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const _SplashBackdrop(),
+          Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(-0.3, -0.6),
+                radius: 1.4,
+                colors: [
+                  MatchLogColors.textSecondary.withValues(alpha: 0.12),
+                  colorScheme.surface,
+                ],
+              ),
+            ),
+          ),
           Center(
             child: Padding(
               padding: MatchLogSpacing.screenPadding,
@@ -70,44 +82,35 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const MatchLogBrandMark(
-                          width: 120,
-                          height: 108,
-                        ),
+                        const MatchLogBrandMark(width: 120, height: 108),
                         const SizedBox(height: MatchLogSpacing.xl),
                         Text(
                           'MatchLog',
-                          style: MatchLogTypography.headlineXL.copyWith(
-                            color: MatchLogColors.textPrimary,
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
                             letterSpacing: -0.8,
-                            fontSize: 36,
                           ),
                         ),
                         const SizedBox(height: MatchLogSpacing.sm),
                         Text(
                           'Track the match. Log the story.',
-                          style: MatchLogTypography.bodyMedium.copyWith(
-                            color: MatchLogColors.textSecondary,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.55),
                           ),
                           textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: MatchLogSpacing.xxxl),
+                        if (widget.hasError)
+                          _ErrorFooter(onRetry: widget.onRetry)
+                        else
+                          const _LoadingDots(color: MatchLogColors.primary),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 56,
-            child: widget.hasError
-                ? _ErrorFooter(onRetry: widget.onRetry)
-                : FadeTransition(
-                    opacity: _fadeIn,
-                    child: const _LoadingDots(),
-                  ),
           ),
         ],
       ),
@@ -116,7 +119,8 @@ class _SplashScreenState extends State<SplashScreen>
 }
 
 class _LoadingDots extends StatefulWidget {
-  const _LoadingDots();
+  final Color color;
+  const _LoadingDots({required this.color});
 
   @override
   State<_LoadingDots> createState() => _LoadingDotsState();
@@ -157,7 +161,7 @@ class _LoadingDotsState extends State<_LoadingDots>
               width: 6,
               height: 6,
               decoration: BoxDecoration(
-                color: MatchLogColors.primary.withValues(alpha: opacity),
+                color: widget.color.withValues(alpha: opacity),
                 shape: BoxShape.circle,
               ),
             );
@@ -174,13 +178,16 @@ class _ErrorFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'Something went wrong',
-          style: MatchLogTypography.bodyMedium.copyWith(
-            color: MatchLogColors.textSecondary,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.55),
           ),
           textAlign: TextAlign.center,
         ),
@@ -190,67 +197,13 @@ class _ErrorFooter extends StatelessWidget {
             onPressed: onRetry,
             child: Text(
               'Retry',
-              style: MatchLogTypography.labelLarge.copyWith(
+              style: theme.textTheme.labelLarge?.copyWith(
                 color: MatchLogColors.primary,
               ),
             ),
           ),
         ],
       ],
-    );
-  }
-}
-
-class _SplashBackdrop extends StatelessWidget {
-  const _SplashBackdrop();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Subtle gradient glow behind the logo
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 1.2,
-                  colors: [
-                    MatchLogColors.primary.withValues(alpha: 0.06),
-                    MatchLogColors.background,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: -120,
-            left: -80,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: MatchLogColors.primary.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          Positioned(
-            right: -90,
-            bottom: 140,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: MatchLogColors.secondary.withValues(alpha: 0.07),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
