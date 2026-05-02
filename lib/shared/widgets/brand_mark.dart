@@ -33,57 +33,41 @@ class MatchLogBrandMarkPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    final leftOuter = w * 0.06;
-    final leftInner = w * 0.31;
-    final center = w * 0.50;
-    final rightInner = w * 0.69;
-    final rightOuter = w * 0.94;
+    // Valley depth — the sharp V where arches meet.
+    final valleyY = h * 0.60;
 
-    final archTop = h * 0.02;
-    final postTop = h * 0.26;
-    final valley = h * 0.70;
-    final bottom = h * 0.98;
-
+    // ── Left half (crimson) — drawn first so purple overlaps on top ──
     final leftPath = Path()
-      ..moveTo(leftOuter, bottom)
-      ..lineTo(leftOuter, postTop)
+      ..moveTo(0, h) // bottom-left
+      ..lineTo(0, h * 0.15) // up the left outer edge
       ..cubicTo(
-        leftOuter,
-        archTop,
-        leftInner,
-        archTop,
-        leftInner,
-        postTop,
+        0, 0, // CP1: pull up to top corner
+        w * 0.06, 0, // CP2: round the corner
+        w * 0.18, 0, // end: on top edge
       )
-      ..lineTo(leftInner, valley)
-      ..quadraticBezierTo(
-        w * 0.40,
-        h * 0.84,
-        center,
-        valley,
+      ..cubicTo(
+        w * 0.36, 0, // CP1: arch sweeps right along top
+        w * 0.48, valleyY * 0.50, // CP2: curving down toward valley
+        w * 0.52, valleyY, // end: slightly past center (overlap)
       )
-      ..lineTo(center, bottom)
+      ..lineTo(w * 0.52, h) // down to bottom
       ..close();
 
+    // ── Right half (purple) — drawn second, on top at intersection ──
     final rightPath = Path()
-      ..moveTo(rightOuter, bottom)
-      ..lineTo(rightOuter, postTop)
+      ..moveTo(w, h) // bottom-right
+      ..lineTo(w, h * 0.15) // up the right outer edge
       ..cubicTo(
-        rightOuter,
-        archTop,
-        rightInner,
-        archTop,
-        rightInner,
-        postTop,
+        w, 0, // CP1: pull up to top corner
+        w * 0.94, 0, // CP2: round the corner
+        w * 0.82, 0, // end: on top edge
       )
-      ..lineTo(rightInner, valley)
-      ..quadraticBezierTo(
-        w * 0.60,
-        h * 0.84,
-        center,
-        valley,
+      ..cubicTo(
+        w * 0.64, 0, // CP1: arch sweeps left along top
+        w * 0.52, valleyY * 0.50, // CP2: curving down toward valley
+        w * 0.48, valleyY, // end: slightly past center (overlap)
       )
-      ..lineTo(center, bottom)
+      ..lineTo(w * 0.48, h) // down to bottom
       ..close();
 
     canvas.drawPath(

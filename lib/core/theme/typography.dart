@@ -1,6 +1,9 @@
-/// two typefaces
-/// - inter (google fonts) — all ui text: headlines, body, labels, stat numbers
-/// - jetbrains mono (google fonts) — odds display only
+/// Two typefaces:
+/// - Bricolage Grotesque (google fonts) — headlines, titles, display text
+/// - Inter (google fonts) — body text, labels, UI elements
+///
+/// Monospace:
+/// - JetBrains Mono (google fonts) — odds display only
 
 // Usage:
 //   Text('Arsenal', style: Theme.of(context).textTheme.headlineMedium)
@@ -14,27 +17,30 @@ class MatchLogTypography {
   MatchLogTypography._();
 
   // 32px / w800 — screen titles, Year in Review headlines & hero numbers
-  static TextStyle get headlineXL => GoogleFonts.inter(
+  static TextStyle get headlineXL => GoogleFonts.bricolageGrotesque(
         fontSize: 32,
         fontWeight: FontWeight.w800,
         letterSpacing: -0.5,
+        height: 1.15,
       );
 
   // 24px / w700 — section headers, match score display
-  static TextStyle get headlineLarge => GoogleFonts.inter(
+  static TextStyle get headlineLarge => GoogleFonts.bricolageGrotesque(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.3,
+        height: 1.2,
       );
 
   // 20px / w700 — card titles, screen sub-headers
-  static TextStyle get headlineMedium => GoogleFonts.inter(
+  static TextStyle get headlineMedium => GoogleFonts.bricolageGrotesque(
         fontSize: 20,
         fontWeight: FontWeight.w700,
+        height: 1.25,
       );
 
   // 16px / w600 — list item titles, form section labels
-  static TextStyle get headlineSmall => GoogleFonts.inter(
+  static TextStyle get headlineSmall => GoogleFonts.bricolageGrotesque(
         fontSize: 16,
         fontWeight: FontWeight.w600,
       );
@@ -76,7 +82,7 @@ class MatchLogTypography {
       );
 
   // 36px / w900 — large stat numbers on dashboard (ROI, match count, win rate)
-  static TextStyle get statNumber => GoogleFonts.inter(
+  static TextStyle get statNumber => GoogleFonts.bricolageGrotesque(
         fontSize: 36,
         fontWeight: FontWeight.w900,
       );

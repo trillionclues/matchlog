@@ -2,19 +2,17 @@ library;
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/spacing.dart';
-import '../../../../shared/widgets/brand_mark.dart';
 
-/// Shared scaffold for login and register screens.
+// Shared scaffold for login and register screens.
+// Layout (top → bottom):
+//   Back button (if canPop)
+//   Title + subtitle
+//   Social login buttons  (optional)
+//   ── or ──  divider     (shown when socialActions provided)
+//   Form fields
+//   Primary CTA button
+//   Switch-screen footer link
 
-/// Layout (top → bottom):
-///   Logo + app name
-///   Title + subtitle
-///   Social login buttons  (optional)
-///   ── or ──  divider     (shown when socialActions provided)
-///   Form fields
-///   Primary CTA button
-///   Switch-screen footer link
-///
 class AuthForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final List<Widget> fields;
@@ -47,122 +45,158 @@ class AuthForm extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final hasSocial = socialActions != null && socialActions!.isNotEmpty;
+    final canPop = Navigator.of(context).canPop();
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MatchLogSpacing.xl,
-              vertical: MatchLogSpacing.xxl,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _AuthHeader(),
-                    const SizedBox(height: MatchLogSpacing.xxl),
-                    Text(
-                      title,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: MatchLogSpacing.sm),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: MatchLogSpacing.xxl),
-                    if (hasSocial) ...[
-                      ...socialActions!.map((btn) => Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: MatchLogSpacing.sm),
-                            child: btn,
-                          )),
-                      const SizedBox(height: MatchLogSpacing.lg),
-                      _OrDivider(color: colorScheme.outlineVariant),
-                      const SizedBox(height: MatchLogSpacing.lg),
-                    ],
-                    ...fields,
-                    const SizedBox(height: MatchLogSpacing.xl),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : onSubmit,
-                        child: isLoading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.surface,
-                                ),
-                              )
-                            : Text(submitLabel),
-                      ),
-                    ),
-                    const SizedBox(height: MatchLogSpacing.xl),
-                    footer,
-                    if (auxiliaryFooter != null) ...[
-                      const SizedBox(height: MatchLogSpacing.sm),
-                      auxiliaryFooter!,
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+    final bgColor = colorScheme.brightness == Brightness.light
+        ? colorScheme.surface
+        : colorScheme.surface;
+
+    final authInputDecoration = theme.inputDecorationTheme.copyWith(
+      filled: false,
+      border: UnderlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.onSurface, width: 1.5),
+      ),
+      errorBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.error),
+      ),
+      focusedErrorBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.error, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 0,
+        vertical: 14,
       ),
     );
-  }
-}
 
-class _AuthHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: MatchLogSpacing.roundedLg,
-            border: Border.all(color: colorScheme.outlineVariant),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
+    return Theme(
+      data: theme.copyWith(
+        scaffoldBackgroundColor: bgColor,
+        inputDecorationTheme: authInputDecoration,
+      ),
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              if (canPop)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: MatchLogSpacing.lg,
+                      top: MatchLogSpacing.sm,
+                    ),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.arrow_back_rounded,
+                        color: colorScheme.onSurface,
+                        size: 22,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: MatchLogSpacing.xl,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            height: canPop
+                                ? MatchLogSpacing.xxl
+                                : MatchLogSpacing.xxxl + MatchLogSpacing.xl,
+                          ),
+                          Text(
+                            title,
+                            style: theme.textTheme.displayMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                              height: 1.15,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: MatchLogSpacing.md),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: MatchLogSpacing.lg,
+                            ),
+                            child: Text(
+                              subtitle,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.55),
+                                height: 1.5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: MatchLogSpacing.xxl),
+                          if (hasSocial) ...[
+                            ...socialActions!,
+                            const SizedBox(height: MatchLogSpacing.xl),
+                            _OrDivider(color: colorScheme.outlineVariant),
+                            const SizedBox(height: MatchLogSpacing.lg),
+                          ],
+                          ...fields,
+                          const SizedBox(height: MatchLogSpacing.xxl),
+                          SizedBox(
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : onSubmit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.onSurface,
+                                foregroundColor: colorScheme.surface,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: MatchLogSpacing.roundedFull,
+                                ),
+                                textStyle: theme.textTheme.labelLarge?.copyWith(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: isLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: colorScheme.surface,
+                                      ),
+                                    )
+                                  : Text(submitLabel),
+                            ),
+                          ),
+                          const SizedBox(height: MatchLogSpacing.xxl),
+                          footer,
+                          if (auxiliaryFooter != null) ...[
+                            const SizedBox(height: MatchLogSpacing.sm),
+                            auxiliaryFooter!,
+                          ],
+                          const SizedBox(height: MatchLogSpacing.xxl),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          alignment: Alignment.center,
-          child: const MatchLogBrandMark(
-            width: 40,
-            height: 36,
-          ),
         ),
-        const SizedBox(height: MatchLogSpacing.md),
-        Text(
-          'MatchLog',
-          style: theme.textTheme.displayMedium?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w800,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -174,21 +208,22 @@ class _OrDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Row(
       children: [
-        Expanded(child: Divider(color: color, thickness: 1)),
+        Expanded(child: Divider(color: color, thickness: 0.5)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MatchLogSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: MatchLogSpacing.lg),
           child: Text(
-            'OR',
+            'or',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface.withValues(alpha: 0.4),
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),
-        Expanded(child: Divider(color: color, thickness: 1)),
+        Expanded(child: Divider(color: color, thickness: 0.5)),
       ],
     );
   }
@@ -200,9 +235,18 @@ class AuthFieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.titleMedium,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.2,
+            ),
+      ),
     );
   }
 }
@@ -229,15 +273,17 @@ class AuthSwitchFooter extends StatelessWidget {
       children: [
         Text(
           '$question ',
-          style: theme.textTheme.bodyMedium,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.55),
+          ),
         ),
         GestureDetector(
           onTap: onTap,
           child: Text(
             actionLabel,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

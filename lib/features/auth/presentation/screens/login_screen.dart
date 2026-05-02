@@ -33,16 +33,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submitEmailLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    final result = await ref.read(authControllerProvider.notifier).signInWithEmail(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+    final result =
+        await ref.read(authControllerProvider.notifier).signInWithEmail(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+            );
     _showError(result);
   }
 
   Future<void> _submitGoogleLogin() async {
-    final result = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    final result =
+        await ref.read(authControllerProvider.notifier).signInWithGoogle();
     _showError(result);
+  }
+
+  Future<void> _submitAppleLogin() async {
+    // TODO: Implement Apple Sign-In via FirebaseAuthSource
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Apple Sign-In coming soon.')),
+    );
   }
 
   void _showError(AuthActionResult result) {
@@ -67,19 +77,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return AuthForm(
       formKey: _formKey,
-      title: 'Welcome back',
-      subtitle: 'Log in to continue tracking your matches and bets.',
-      submitLabel: 'Log in',
+      title: 'Welcome Back',
+      subtitle:
+          'Stay connected by signing in with your email and password to access your account.',
+      submitLabel: 'Sign In',
       onSubmit: _submitEmailLogin,
       isLoading: isLoading,
       socialActions: [
-        SocialLoginButton(
-          onPressed: _submitGoogleLogin,
+        SocialLoginRow(
+          onGooglePressed: _submitGoogleLogin,
+          onApplePressed: _submitAppleLogin,
           isLoading: isLoading,
         ),
       ],
       fields: [
-        const AuthFieldLabel('Email or username'),
+        const AuthFieldLabel('Email Address'),
         MatchLogSpacing.gapXs,
         TextFormField(
           controller: _emailController,
@@ -100,11 +112,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             hintText: 'Enter your password',
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                _obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: colorScheme.onSurfaceVariant,
                 size: 20,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
           validator: Validators.required,
@@ -113,15 +128,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ],
       footer: AuthSwitchFooter(
         question: "Don't have an account?",
-        actionLabel: 'Sign up',
+        actionLabel: 'Sign Up',
         onTap: isLoading ? null : () => context.go(Routes.register),
       ),
-      auxiliaryFooter: kDebugMode
-          ? TextButton(
-              onPressed: isLoading ? null : _previewOnboarding,
-              child: const Text('Replay onboarding'),
-            )
-          : null,
+      // auxiliaryFooter: kDebugMode
+      //     ? TextButton(
+      //         onPressed: isLoading ? null : _previewOnboarding,
+      //         child: const Text('Replay Onboarding'),
+      //       )
+      //     : null,
     );
   }
 }
