@@ -32,14 +32,14 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     )..forward();
     _fadeIn = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.80, end: 1.0).animate(
+    _scale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
     );
     _slideUp = Tween<Offset>(
-      begin: const Offset(0, 0.08),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
@@ -70,29 +70,9 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 168,
-                          height: 168,
-                          decoration: BoxDecoration(
-                            color: MatchLogColors.surface,
-                            borderRadius: BorderRadius.circular(40),
-                            border: Border.all(
-                              color: MatchLogColors.surfaceBorder,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 32,
-                                offset: const Offset(0, 18),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: MatchLogBrandMark(
-                              width: 104,
-                              height: 92,
-                            ),
-                          ),
+                        const MatchLogBrandMark(
+                          width: 120,
+                          height: 108,
                         ),
                         const SizedBox(height: MatchLogSpacing.xl),
                         Text(
@@ -100,6 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
                           style: MatchLogTypography.headlineXL.copyWith(
                             color: MatchLogColors.textPrimary,
                             letterSpacing: -0.8,
+                            fontSize: 36,
                           ),
                         ),
                         const SizedBox(height: MatchLogSpacing.sm),
@@ -228,51 +209,47 @@ class _SplashBackdrop extends StatelessWidget {
     return IgnorePointer(
       child: Stack(
         fit: StackFit.expand,
-        children: const [
+        children: [
+          // Subtle gradient glow behind the logo
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [
+                    MatchLogColors.primary.withValues(alpha: 0.06),
+                    MatchLogColors.background,
+                  ],
+                ),
+              ),
+            ),
+          ),
           Positioned(
             top: -120,
             left: -80,
-            child: _GlowOrb.primary(
-              size: 260,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: MatchLogColors.primary.withValues(alpha: 0.08),
+              ),
             ),
           ),
           Positioned(
             right: -90,
             bottom: 140,
-            child: _GlowOrb.secondary(
-              size: 240,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: MatchLogColors.secondary.withValues(alpha: 0.07),
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  final double size;
-  final bool isPrimary;
-
-  const _GlowOrb.primary({
-    required this.size,
-  }) : isPrimary = true;
-
-  const _GlowOrb.secondary({
-    required this.size,
-  }) : isPrimary = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isPrimary
-        ? MatchLogColors.primary.withValues(alpha: 0.13)
-        : MatchLogColors.secondary.withValues(alpha: 0.12);
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
       ),
     );
   }
