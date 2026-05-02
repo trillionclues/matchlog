@@ -1,15 +1,51 @@
 library;
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/spacing.dart';
+import '../../../../shared/widgets/snackbar.dart';
 import '../providers/auth_providers.dart';
 
-class EmailVerificationBanner extends ConsumerWidget {
+class EmailVerificationBanner extends ConsumerStatefulWidget {
   const EmailVerificationBanner({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EmailVerificationBanner> createState() =>
+      _EmailVerificationBannerState();
+}
+
+class _EmailVerificationBannerState
+    extends ConsumerState<EmailVerificationBanner> {
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Poll Firebase every 30s to detect out-of-app verification
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _checkVerification(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkVerification() async {
+    final user = ref.read(authStateProvider).valueOrNull;
+    if (user == null || user.emailVerified) {
+      _pollTimer?.cancel();
+      return;
+    }
+    await ref.read(checkEmailVerifiedProvider).call();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authUser = ref.watch(authStateProvider).valueOrNull;
     if (authUser == null || authUser.emailVerified) {
       return const SizedBox.shrink();
@@ -19,9 +55,6 @@ class EmailVerificationBanner extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Use the theme's warning-like color via a semi-transparent primary tint.
-    // Since Material ColorScheme doesn't expose warning natively, we derive
-    // a warm amber from the tertiary or fall back to a standard amber.
     const warningColor = Color(0xFFF59E0B);
 
     return Container(
@@ -62,30 +95,50 @@ class EmailVerificationBanner extends ConsumerWidget {
                   style: theme.textTheme.bodyMedium,
                 ),
                 MatchLogSpacing.gapSm,
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          final result = await ref
-                              .read(authControllerProvider.notifier)
-                              .resendVerificationEmail();
-                          if (!context.mounted || result.isCancelled) {
-                            return;
-                          }
-                          final message = result.isSuccess
-                              ? 'Verification email sent.'
-                              : result.message ?? 'Unable to send email.';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(message)),
-                          );
-                        },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    foregroundColor: colorScheme.primary,
-                  ),
-                  child: const Text('Resend email'),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final result = await ref
+                                  .read(authControllerProvider.notifier)
+                                  .resendVerificationEmail();
+                              if (!context.mounted || result.isCancelled) {
+                                return;
+                              }
+                              if (result.isSuccess) {
+                                MatchLogSnackBar.success(
+                                  context,
+                                  'Verification email sent.',
+                                );
+                              } else {
+                                MatchLogSnackBar.error(
+                                  context,
+                                  result.message ?? 'Unable to send email.',
+                                );
+                              }
+                            },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: colorScheme.primary,
+                      ),
+                      child: const Text('Resend email'),
+                    ),
+                    const SizedBox(width: MatchLogSpacing.lg),
+                    TextButton(
+                      onPressed: isLoading ? null : _checkVerification,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: colorScheme.onSurface,
+                      ),
+                      child: const Text("I've verified"),
+                    ),
+                  ],
                 ),
               ],
             ),
