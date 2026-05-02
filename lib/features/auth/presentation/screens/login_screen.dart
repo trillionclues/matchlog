@@ -124,17 +124,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         actionLabel: 'Sign Up',
         onTap: isLoading ? null : () => context.go(Routes.register),
       ),
-      auxiliaryFooter: kDebugMode
-          ? TextButton(
-              onPressed: isLoading ? null : _previewOnboarding,
-              child: const Text('Replay Onboarding'),
-            )
-          : null,
+      // auxiliaryFooter: kDebugMode
+      //     ? TextButton(
+      //         onPressed: isLoading ? null : _previewOnboarding,
+      //         child: const Text('Replay Onboarding'),
+      //       )
+      //     : null,
     );
   }
 
-  void _previewOnboarding() {
-    final router = ref.read(appRouterProvider);
-    router.go(Routes.onboarding);
-  }
+  // void _previewOnboarding() {
+  //   final router = ref.read(appRouterProvider);
+  //   router.go(Routes.onboarding);
+  // }
 }

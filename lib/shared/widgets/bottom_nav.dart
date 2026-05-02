@@ -70,7 +70,7 @@ class MatchLogBottomNav extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline_rounded),
           activeIcon: Icon(Icons.person_rounded),
-          label: 'More',
+          label: 'Profile',
         ),
       ],
     );

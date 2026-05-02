@@ -146,7 +146,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.diary,
         name: 'diary',
-        builder: (context, state) => const DiaryScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: DiaryScreen(),
+        ),
       ),
       GoRoute(
         path: Routes.logMatch,
@@ -168,7 +170,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.betting,
         name: 'betting',
-        builder: (context, state) => const BettingScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: BettingScreen(),
+        ),
       ),
       GoRoute(
         path: Routes.logBet,
@@ -178,7 +182,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.profile,
         name: 'profile',
-        builder: (context, state) => const ProfileScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: ProfileScreen(),
+        ),
       ),
       GoRoute(
         path: Routes.settings,
@@ -188,7 +194,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.feed,
         name: 'feed',
-        builder: (context, state) => const FeedScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: FeedScreen(),
+        ),
       ),
       GoRoute(
         path: Routes.userProfile,
