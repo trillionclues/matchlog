@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/spacing.dart';
-import '../../../../shared/widgets/brand_mark.dart';
 import '../providers/auth_providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -26,28 +25,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   static const _slides = <_OnboardingSlide>[
     _OnboardingSlide(
-      icon: Icons.auto_stories_rounded,
-      eyebrow: 'Your sports diary',
       title: 'Log every\nmatch that\nmatters',
       description:
-          'Build a sharp watch history with ratings, notes, and memories you can actually revisit.',
-      accentColor: MatchLogColors.primary,
-    ),
-    _OnboardingSlide(
-      icon: Icons.track_changes_rounded,
-      eyebrow: 'Betting without clutter',
-      title: 'Track bets\nbeyond one\nbookmaker',
-      description:
-          'Keep stake, odds, payout, and ROI in one clean record instead of scattered screenshots.',
-      accentColor: MatchLogColors.secondary,
-    ),
-    _OnboardingSlide(
-      icon: Icons.groups_rounded,
-      eyebrow: 'Built for the next layer',
-      title: 'Bring your\ncrew in\nlater',
-      description:
-          'Prediction groups and social play come next. Your personal history stays the foundation.',
+          'Build a personal watch history with ratings, notes, and memories you can revisit anytime',
       accentColor: MatchLogColors.success,
+    ),
+    _OnboardingSlide(
+      title: 'Track bets\nacross every\nbookmaker',
+      description:
+          'Keep stake, odds, payout, and ROI in one clean record. No more scattered screenshots',
+      accentColor: MatchLogColors.textSecondary,
+    ),
+    _OnboardingSlide(
+      title: 'Bring your\nown crew\nalong',
+      description:
+          'Prediction groups and social features so you never miss a moment with your friends',
+      accentColor: MatchLogColors.primary,
     ),
   ];
 
@@ -93,10 +86,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authControllerProvider).isLoading;
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final slide = _slides[_pageIndex];
 
     return Scaffold(
-      backgroundColor: MatchLogColors.background,
       body: FadeTransition(
         opacity: _fadeIn,
         child: Stack(
@@ -111,7 +104,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   radius: 1.4,
                   colors: [
                     slide.accentColor.withValues(alpha: 0.12),
-                    MatchLogColors.background,
+                    colorScheme.surface,
                   ],
                 ),
               ),
@@ -126,15 +119,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                     ),
                     child: Row(
                       children: [
-                        const MatchLogBrandMark(width: 28, height: 24),
-                        MatchLogSpacing.hGapSm,
-                        Text(
-                          'MatchLog',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: MatchLogColors.textPrimary,
-                          ),
-                        ),
                         const Spacer(),
                         // if (kDebugMode)
                         //   TextButton(
@@ -146,7 +130,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                           child: Text(
                             'Skip',
                             style: theme.textTheme.labelLarge?.copyWith(
-                              color: MatchLogColors.textSecondary,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -185,7 +169,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               decoration: BoxDecoration(
                                 color: index == _pageIndex
                                     ? slide.accentColor
-                                    : MatchLogColors.surfaceBorder,
+                                    : colorScheme.outlineVariant,
                                 borderRadius: MatchLogSpacing.roundedFull,
                               ),
                             ),
@@ -210,8 +194,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                     );
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: MatchLogColors.textPrimary,
-                              foregroundColor: MatchLogColors.background,
+                              backgroundColor: colorScheme.onSurface,
+                              foregroundColor: colorScheme.surface,
                               shape: RoundedRectangleBorder(
                                 borderRadius: MatchLogSpacing.roundedLg,
                               ),
@@ -241,15 +225,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 }
 
 class _OnboardingSlide {
-  final IconData icon;
-  final String eyebrow;
   final String title;
   final String description;
   final Color accentColor;
 
   const _OnboardingSlide({
-    required this.icon,
-    required this.eyebrow,
     required this.title,
     required this.description,
     required this.accentColor,
@@ -264,6 +244,7 @@ class _SlideContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -273,36 +254,17 @@ class _SlideContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Spacer(flex: 1),
-          Container(
+          SizedBox(
             width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: slide.accentColor.withValues(alpha: 0.15),
-              borderRadius: MatchLogSpacing.roundedLg,
-            ),
-            child: Icon(
-              slide.icon,
-              color: slide.accentColor,
-              size: 36,
-            ),
+            height: 100,
           ),
           const SizedBox(height: MatchLogSpacing.xl),
-          Text(
-            slide.eyebrow.toUpperCase(),
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: slide.accentColor,
-              letterSpacing: 1.5,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: MatchLogSpacing.md),
           Text(
             slide.title,
             style: theme.textTheme.displayLarge?.copyWith(
               fontWeight: FontWeight.w900,
               height: 1.0,
               letterSpacing: -1.0,
-              color: MatchLogColors.textPrimary,
               fontSize: 42,
             ),
           ),
@@ -310,7 +272,7 @@ class _SlideContent extends StatelessWidget {
           Text(
             slide.description,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: MatchLogColors.textSecondary,
+              color: colorScheme.onSurfaceVariant,
               height: 1.6,
             ),
           ),
