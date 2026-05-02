@@ -2,8 +2,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../core/theme/colors.dart';
-import '../../core/theme/typography.dart';
 
 class MatchLogAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -23,9 +21,10 @@ class MatchLogAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AppBar(
-      title: Text(title, style: MatchLogTypography.headlineMedium),
-      backgroundColor: MatchLogColors.background,
+      title: Text(title, style: theme.textTheme.headlineMedium),
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,

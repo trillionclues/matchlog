@@ -61,6 +61,26 @@ class Validators {
     return null;
   }
 
+  // Validates that [value] has at least 8 characters.
+  static String? password(String? value) {
+    final requiredError = required(value);
+    if (requiredError != null) return requiredError;
+    if (value!.trim().length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    return null;
+  }
+
+  // Validates that [value] matches [otherValue].
+  static String? confirmPassword(String? value, String otherValue) {
+    final passwordError = password(value);
+    if (passwordError != null) return passwordError;
+    if (value!.trim() != otherValue.trim()) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
   // Validates that [value] is a non-empty display name.
   static String? displayName(String? value) {
     final requiredError = required(value);
@@ -86,7 +106,9 @@ class Validators {
   // Validates a review text — optional but has a max length.
   static String? review(String? value) {
     if (value == null || value.trim().isEmpty) return null; // Optional
-    if (value.trim().length > 1000) return 'Review must be 1000 characters or less';
+    if (value.trim().length > 1000) {
+      return 'Review must be 1000 characters or less';
+    }
     return null;
   }
 }

@@ -7,6 +7,7 @@ import 'app.dart';
 import 'core/di/service_locator.dart';
 
 void main() async {
+  
   await ServiceLocator.initialize();
   runApp(const ProviderScope(child: MatchLogApp()));
 }

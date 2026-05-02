@@ -3,9 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
-import '../../core/theme/typography.dart';
 
 class ErrorState extends StatelessWidget {
   final String message;
@@ -21,27 +19,30 @@ class ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(MatchLogSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline_rounded,
               size: 64,
-              color: MatchLogColors.error,
+              color: colorScheme.error,
             ),
             MatchLogSpacing.gapLg,
             Text(
               'Something went wrong',
-              style: MatchLogTypography.headlineSmall,
+              style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             MatchLogSpacing.gapSm,
             Text(
               message,
-              style: MatchLogTypography.bodyMedium,
+              style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             MatchLogSpacing.gapXl,

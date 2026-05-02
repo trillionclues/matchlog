@@ -8,16 +8,21 @@ library;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/router/routes.dart';
-import '../../core/theme/colors.dart';
 
 class MatchLogBottomNav extends StatelessWidget {
   const MatchLogBottomNav({super.key});
 
   static int _locationToIndex(String location) {
-    if (location.startsWith(Routes.betting)) { return 1; }
-    if (location.startsWith(Routes.feed)) { return 2; }
+    if (location.startsWith(Routes.betting)) {
+      return 1;
+    }
+    if (location.startsWith(Routes.feed)) {
+      return 2;
+    }
     if (location.startsWith(Routes.profile) ||
-        location.startsWith(Routes.settings)) { return 3; }
+        location.startsWith(Routes.settings)) {
+      return 3;
+    }
     return 0;
   }
 
@@ -26,18 +31,24 @@ class MatchLogBottomNav extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     final currentIndex = _locationToIndex(location);
 
+    // Colors and style are fully inherited from BottomNavigationBarThemeData
+    // defined in AppTheme — no hardcoded values needed here.
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {
         switch (index) {
           case 0:
             context.go(Routes.diary);
+            break;
           case 1:
             context.go(Routes.betting);
+            break;
           case 2:
             context.go(Routes.feed);
+            break;
           case 3:
             context.go(Routes.profile);
+            break;
         }
       },
       items: const [
@@ -62,11 +73,6 @@ class MatchLogBottomNav extends StatelessWidget {
           label: 'More',
         ),
       ],
-      selectedItemColor: MatchLogColors.primary,
-      unselectedItemColor: MatchLogColors.textTertiary,
-      backgroundColor: MatchLogColors.surface,
-      type: BottomNavigationBarType.fixed,
-      elevation: 0,
     );
   }
 }

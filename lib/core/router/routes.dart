@@ -1,10 +1,12 @@
-// Named route string constants.
-
 library;
 
 abstract class Routes {
   Routes._();
   static const String home = '/';
+  static const String loading = '/loading';
+  static const String onboarding = '/onboarding';
+  static const String login = '/login';
+  static const String register = '/register';
 
   static const String diary = '/diary';
 
@@ -38,13 +40,12 @@ abstract class Routes {
   // Join group via invite code (deep link landing)
   static const String joinGroup = '/groups/join/:code';
 
- static const String aiInsights = '/insights';
+  static const String aiInsights = '/insights';
 
   static const String yearInReview = '/review';
 
   static const String subscription = '/subscription';
 
-  
   // Build [matchDetail] path with a specific entry ID.
   static String matchDetailPath(String id) => '/diary/$id';
 
