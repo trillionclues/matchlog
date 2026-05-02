@@ -5,7 +5,6 @@ library;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
 
 class PhotoGrid extends StatelessWidget {
@@ -26,6 +25,7 @@ class PhotoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (photoUrls.isEmpty) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
     final visiblePhotos = photoUrls.take(maxVisible).toList();
     final remaining = photoUrls.length - maxVisible;
 
@@ -51,14 +51,14 @@ class PhotoGrid extends StatelessWidget {
               width: itemSize,
               height: itemSize,
               decoration: BoxDecoration(
-                color: MatchLogColors.surfaceElevated,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: MatchLogSpacing.roundedSm,
               ),
               child: Center(
                 child: Text(
                   '+$remaining',
-                  style: const TextStyle(
-                    color: MatchLogColors.textSecondary,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -79,6 +79,8 @@ class _PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ClipRRect(
       borderRadius: MatchLogSpacing.roundedSm,
       child: CachedNetworkImage(
@@ -89,15 +91,15 @@ class _PhotoThumbnail extends StatelessWidget {
         placeholder: (_, __) => Container(
           width: size,
           height: size,
-          color: MatchLogColors.surfaceElevated,
+          color: colorScheme.surfaceContainerHighest,
         ),
         errorWidget: (_, __, ___) => Container(
           width: size,
           height: size,
-          color: MatchLogColors.surfaceElevated,
-          child: const Icon(
+          color: colorScheme.surfaceContainerHighest,
+          child: Icon(
             Icons.broken_image_outlined,
-            color: MatchLogColors.textTertiary,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ),

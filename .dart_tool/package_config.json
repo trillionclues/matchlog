@@ -20,6 +20,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "adaptive_number",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/adaptive_number-1.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "analyzer",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/analyzer-6.11.0",
       "packageUri": "lib/",
@@ -248,6 +254,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "dart_jsonwebtoken",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/dart_jsonwebtoken-2.17.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dart_style",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/dart_style-2.3.8",
       "packageUri": "lib/",
@@ -282,6 +294,12 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/drift_dev-2.19.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "ed25519_edwards",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/ed25519_edwards-0.3.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "equatable",
@@ -336,6 +354,12 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/firebase_auth-4.20.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_auth_mocks",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/firebase_auth_mocks-0.13.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "firebase_auth_platform_interface",
@@ -524,6 +548,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "fpdart",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/fpdart-1.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "freezed",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/freezed-2.5.7",
       "packageUri": "lib/",
@@ -618,6 +648,42 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_fonts-6.3.0",
       "packageUri": "lib/",
       "languageVersion": "2.14"
+    },
+    {
+      "name": "google_identity_services_web",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_sign_in-6.2.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "google_sign_in_android",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_sign_in_android-6.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "google_sign_in_ios",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.8.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in_platform_interface",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_sign_in_platform_interface-2.5.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in_web",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/google_sign_in_web-0.12.4+4",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "graphs",
@@ -806,6 +872,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "mock_exceptions",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/mock_exceptions-0.8.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.18"
+    },
+    {
       "name": "mockito",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/mockito-5.4.5",
       "packageUri": "lib/",
@@ -896,6 +968,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "pointycastle",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/pointycastle-3.9.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "pool",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/pool-1.5.2",
       "packageUri": "lib/",
@@ -960,6 +1038,48 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/share_plus_platform_interface-4.0.0",
       "packageUri": "lib/",
       "languageVersion": "2.18"
+    },
+    {
+      "name": "shared_preferences",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences-2.5.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "shared_preferences_android",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_android-2.4.11",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "shared_preferences_foundation",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_foundation-2.5.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "shared_preferences_linux",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_linux-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "shared_preferences_platform_interface",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_platform_interface-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "shared_preferences_web",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_web-2.4.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "shared_preferences_windows",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shared_preferences_windows-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "shelf",
@@ -1226,7 +1346,7 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2026-04-21T16:26:31.956714Z",
+  "generated": "2026-04-24T10:20:32.772898Z",
   "generator": "pub",
   "generatorVersion": "3.6.0",
   "flutterRoot": "file:///Users/user/fvm/versions/3.27.0",
