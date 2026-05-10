@@ -83,7 +83,7 @@ final matchEntryDetailProvider = FutureProvider.autoDispose
       );
 });
 
-// Log match mutation controller
+// Log match mutation
 final logMatchControllerProvider =
     StateNotifierProvider.autoDispose<LogMatchController, AsyncValue<void>>(
         (ref) {
@@ -109,7 +109,7 @@ class LogMatchController extends StateNotifier<AsyncValue<void>> {
 
 // Delete entry mutation controller
 final deleteEntryControllerProvider =
-    StateNotifierProvider.autoDispose<DeleteEntryController, AsyncValue<void>>(
+    StateNotifierProvider<DeleteEntryController, AsyncValue<void>>(
         (ref) {
   return DeleteEntryController(ref);
 });

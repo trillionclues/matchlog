@@ -148,9 +148,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.diary,
         name: 'diary',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: DiaryScreen(),
-        ),
+        builder: (context, state) => const DiaryScreen(),
       ),
       GoRoute(
         path: Routes.logMatch,

@@ -139,8 +139,10 @@ class AppTheme {
         ),
         chipTheme: ChipThemeData(
           backgroundColor: MatchLogLightColors.surface,
-          selectedColor: MatchLogLightColors.primarySurface,
+          selectedColor: MatchLogLightColors.primaryLight,
           disabledColor: MatchLogLightColors.surfaceBorder,
+          checkmarkColor: MatchLogLightColors.primary,
+          showCheckmark: false,
           labelStyle: MatchLogTypography.labelSmall.copyWith(
             color: MatchLogLightColors.textPrimary,
           ),
@@ -149,6 +151,12 @@ class AppTheme {
             borderRadius: MatchLogSpacing.roundedFull,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          color: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return MatchLogLightColors.primaryLight;
+            }
+            return MatchLogLightColors.surface;
+          }),
         ),
         dividerTheme: const DividerThemeData(
           color: MatchLogLightColors.surfaceBorder,
@@ -399,6 +407,8 @@ class AppTheme {
           backgroundColor: MatchLogColors.surfaceElevated,
           selectedColor: MatchLogColors.primarySurface,
           disabledColor: MatchLogColors.surfaceBorder,
+          checkmarkColor: MatchLogColors.primary,
+          showCheckmark: false,
           labelStyle: MatchLogTypography.labelSmall.copyWith(
             color: MatchLogColors.textPrimary,
           ),
@@ -407,6 +417,12 @@ class AppTheme {
             borderRadius: MatchLogSpacing.roundedFull,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          color: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return MatchLogColors.primarySurface;
+            }
+            return MatchLogColors.surfaceElevated;
+          }),
         ),
         dividerTheme: const DividerThemeData(
           color: MatchLogColors.surfaceBorder,

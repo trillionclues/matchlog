@@ -2,6 +2,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/di/providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
@@ -12,6 +13,9 @@ class MatchLogApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+
+    // Activate sync trigger to watche connectivity and drain SyncQueue on reconnect.
+    ref.watch(syncTriggerProvider);
 
     return _AuthLifecycleScope(
       child: MaterialApp.router(
