@@ -161,7 +161,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.matchDetail,
         name: 'matchDetail',
         builder: (context, state) => MatchDetailScreen(
-          matchId: state.pathParameters['id'] ?? '',
+          entryId: state.pathParameters['id'] ?? '',
         ),
       ),
       GoRoute(
