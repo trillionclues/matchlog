@@ -1,6 +1,4 @@
-// MatchCard — dense but scannable diary feed card.
-// Shows league/venue/watch-type metadata, teams + score,
-// star rating with truncated review, and photo count + date footer.
+
 library;
 
 import 'package:flutter/material.dart';
@@ -40,222 +38,343 @@ class MatchCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(
+    return Padding(
+       padding: const EdgeInsets.symmetric(
         horizontal: MatchLogSpacing.lg,
         vertical: MatchLogSpacing.xs,
       ),
-      child: InkWell(
+      child: Material(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: MatchLogSpacing.roundedMd,
+        child: InkWell(
         onTap: onTap,
         borderRadius: MatchLogSpacing.roundedMd,
-        child: Padding(
-          padding: MatchLogSpacing.cardPadding,
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: MatchLogSpacing.roundedMd,
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            padding: const EdgeInsets.all(MatchLogSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Metadata row: league · watch type · venue
-              _MetadataRow(
-                league: entry.league,
-                watchType: entry.watchType,
-                watchTypeIcon: _watchTypeIcon(entry.watchType),
-                watchTypeLabel: _watchTypeLabel(entry.watchType),
-                venue: entry.venue,
-                colorScheme: colorScheme,
-                textTheme: theme.textTheme,
-              ),
-              const SizedBox(height: MatchLogSpacing.md),
-
-              // Teams and score
-              _ScoreRow(
-                homeTeam: entry.homeTeam,
-                awayTeam: entry.awayTeam,
-                score: entry.score,
-                theme: theme,
-                colorScheme: colorScheme,
-              ),
-              const SizedBox(height: MatchLogSpacing.md),
-
-              // Rating + review preview
               Row(
                 children: [
-                  RatingStars(rating: entry.rating, size: 16),
-                  if (entry.review != null && entry.review!.isNotEmpty) ...[
-                    const SizedBox(width: MatchLogSpacing.sm),
-                    Expanded(
+                  Expanded(
                       child: Text(
-                        entry.review!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        entry.league,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.55),
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: MatchLogSpacing.sm),
-
-              // Footer: photo count + date
-              Row(
-                children: [
-                  if (entry.photos.isNotEmpty) ...[
-                    Icon(
-                      Icons.photo_outlined,
-                      size: 14,
-                      color: colorScheme.onSurface.withValues(alpha: 0.45),
-                    ),
-                    const SizedBox(width: 4),
                     Text(
-                      '${entry.photos.length}',
+                      DateFormatter.formatRelative(entry.createdAt),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.45),
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
                       ),
                     ),
-                    const SizedBox(width: MatchLogSpacing.md),
                   ],
-                  if (entry.geoVerified) ...[
-                    Icon(
-                      Icons.verified_outlined,
-                      size: 14,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: MatchLogSpacing.md),
-                  ],
-                  const Spacer(),
+                ),
+                const SizedBox(height: MatchLogSpacing.md),
+
+                _ScoreBlock(entry: entry, theme: theme, colorScheme: colorScheme),
+                const SizedBox(height: MatchLogSpacing.md),
+
+                RatingStars(rating: entry.rating, size: 15),
+
+                if (entry.review != null && entry.review!.isNotEmpty) ...[
+                  const SizedBox(height: MatchLogSpacing.xs),
                   Text(
-                    DateFormatter.formatRelative(entry.createdAt),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.45),
+                    entry.review!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      height: 1.45,
                     ),
                   ),
                 ],
+                const SizedBox(height: MatchLogSpacing.sm),
+
+                _Footer(entry: entry, colorScheme: colorScheme, textTheme: theme.textTheme),
+                ],
               ),
-            ],
+
+              // _MetadataRow(
+              //   league: entry.league,
+              //   watchType: entry.watchType,
+              //   watchTypeIcon: _watchTypeIcon(entry.watchType),
+              //   watchTypeLabel: _watchTypeLabel(entry.watchType),
+              //   venue: entry.venue,
+              //   colorScheme: colorScheme,
+              //   textTheme: theme.textTheme,
+              // ),
+              // const SizedBox(height: MatchLogSpacing.md),
+
+              // _ScoreRow(
+              //   homeTeam: entry.homeTeam,
+              //   awayTeam: entry.awayTeam,
+              //   score: entry.score,
+              //   theme: theme,
+              //   colorScheme: colorScheme,
+              // ),
+              // const SizedBox(height: MatchLogSpacing.md),
+              // Row(
+              //   children: [
+              //     RatingStars(rating: entry.rating, size: 16),
+              //     if (entry.review != null && entry.review!.isNotEmpty) ...[
+              //       const SizedBox(width: MatchLogSpacing.sm),
+              //       Expanded(
+              //         child: Text(
+              //           entry.review!,
+              //           maxLines: 1,
+              //           overflow: TextOverflow.ellipsis,
+              //           style: theme.textTheme.bodySmall?.copyWith(
+              //             color: colorScheme.onSurface.withValues(alpha: 0.6),
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ],
+              // ),
+              // const SizedBox(height: MatchLogSpacing.sm),
+
+              // Row(
+              //   children: [
+              //     if (entry.photos.isNotEmpty) ...[
+              //       Icon(
+              //         Icons.photo_outlined,
+              //         size: 14,
+              //         color: colorScheme.onSurface.withValues(alpha: 0.45),
+              //       ),
+              //       const SizedBox(width: 4),
+              //       Text(
+              //         '${entry.photos.length}',
+              //         style: theme.textTheme.labelSmall?.copyWith(
+              //           color: colorScheme.onSurface.withValues(alpha: 0.45),
+              //         ),
+              //       ),
+              //       const SizedBox(width: MatchLogSpacing.md),
+              //     ],
+              //     if (entry.geoVerified) ...[
+              //       Icon(
+              //         Icons.verified_outlined,
+              //         size: 14,
+              //         color: colorScheme.primary,
+              //       ),
+              //       const SizedBox(width: MatchLogSpacing.md),
+              //     ],
+              //     const Spacer(),
+              //     Text(
+              //       DateFormatter.formatRelative(entry.createdAt),
+              //       style: theme.textTheme.labelSmall?.copyWith(
+              //         color: colorScheme.onSurface.withValues(alpha: 0.45),
+              //       ),
+              //     ),
+              //   ],
+              // ),
           ),
         ),
       ),
-    );
+      );
   }
 }
 
-class _MetadataRow extends StatelessWidget {
-  final String league;
-  final String watchType;
-  final IconData watchTypeIcon;
-  final String watchTypeLabel;
-  final String? venue;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
 
-  const _MetadataRow({
-    required this.league,
-    required this.watchType,
-    required this.watchTypeIcon,
-    required this.watchTypeLabel,
-    required this.venue,
-    required this.colorScheme,
-    required this.textTheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = colorScheme.onSurface.withValues(alpha: 0.55);
-    final style = textTheme.labelSmall?.copyWith(color: muted);
-
-    return Row(
-      children: [
-        Flexible(
-          child: Text(league, style: style, overflow: TextOverflow.ellipsis),
-        ),
-        Text(' · ', style: style),
-        Icon(watchTypeIcon, size: 12, color: muted),
-        const SizedBox(width: 2),
-        Text(watchTypeLabel, style: style),
-        if (venue != null && venue!.isNotEmpty) ...[
-          Text(' · ', style: style),
-          Flexible(
-            child: Text(venue!, style: style, overflow: TextOverflow.ellipsis),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _ScoreRow extends StatelessWidget {
-  final String homeTeam;
-  final String? awayTeam;
-  final String score;
+class _ScoreBlock extends StatelessWidget {
+  final domain.MatchEntry entry;
   final ThemeData theme;
   final ColorScheme colorScheme;
 
-  const _ScoreRow({
-    required this.homeTeam,
-    required this.awayTeam,
-    required this.score,
-    required this.theme,
-    required this.colorScheme,
-  });
+  const _ScoreBlock({required this.entry, required this.theme, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
-    if (awayTeam == null) {
-      // Individual sport (F1, MMA, Tennis)
+    // Individual sport — no away team
+    if (entry.awayTeam == null) {
       return Row(
         children: [
           Expanded(
             child: Text(
-              homeTeam,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              entry.homeTeam,
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            score,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: MatchLogSpacing.roundedSm,
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            ),
+            child: Text(
+              entry.score,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
         ],
       );
     }
 
+    // Team sport
     return Row(
       children: [
         Expanded(
           child: Text(
-            homeTeam,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.start,
+            entry.homeTeam,
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: MatchLogSpacing.sm),
           child: Text(
-            score,
+            entry.score,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               letterSpacing: 1.0,
             ),
           ),
         ),
         Expanded(
           child: Text(
-            awayTeam!,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            entry.awayTeam!,
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
+    );
+  }
+}
+
+
+class _Footer extends StatelessWidget {
+  final domain.MatchEntry entry;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  const _Footer({required this.entry, required this.colorScheme, required this.textTheme});
+
+  IconData _watchIcon(String type) => switch (type) {
+        'stadium' => Icons.stadium_outlined,
+        'tv' => Icons.tv_outlined,
+        'streaming' => Icons.wifi_outlined,
+        'radio' => Icons.radio_outlined,
+        _ => Icons.visibility_outlined,
+      };
+
+  String _watchLabel(String type) => switch (type) {
+        'stadium' => 'Stadium',
+        'tv' => 'TV',
+        'streaming' => 'Streaming',
+        'radio' => 'Radio',
+        _ => type,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _Pill(
+          icon: _watchIcon(entry.watchType),
+          label: _watchLabel(entry.watchType),
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        ),
+        if (entry.venue != null && entry.venue!.isNotEmpty) ...[
+          const SizedBox(width: MatchLogSpacing.xs),
+          _Pill(
+            icon: Icons.location_on_outlined,
+            label: entry.venue!,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            maxWidth: 100,
+          ),
+        ],
+        if (entry.geoVerified) ...[
+          const SizedBox(width: MatchLogSpacing.xs),
+          _Pill(
+            icon: Icons.verified_outlined,
+            label: 'Verified',
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            iconColor: colorScheme.primary,
+          ),
+        ],
+        const Spacer(),
+        if (entry.photos.isNotEmpty)
+          Row(
+            children: [
+              Icon(Icons.photo_outlined, size: 13,
+                  color: colorScheme.onSurface.withValues(alpha: 0.4)),
+              const SizedBox(width: 3),
+              Text(
+                '${entry.photos.length}',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final Color? iconColor;
+  final double? maxWidth;
+
+  const _Pill({
+    required this.icon,
+    required this.label,
+    required this.colorScheme,
+    required this.textTheme,
+    this.iconColor,
+    this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: maxWidth != null ? BoxConstraints(maxWidth: maxWidth!) : null,
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(MatchLogSpacing.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12,
+              color: iconColor ?? colorScheme.onSurface.withValues(alpha: 0.55)),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.65),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
