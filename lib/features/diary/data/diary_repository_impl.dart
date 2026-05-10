@@ -124,6 +124,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
           await _enqueueSync(
             operation: 'delete',
             documentId: entryId,
+            userId: userId,
             collection: 'match_entries',
           );
         }
@@ -131,6 +132,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
         await _enqueueSync(
           operation: 'delete',
           documentId: entryId,
+          userId: userId,
           collection: 'match_entries',
         );
       }
@@ -244,9 +246,15 @@ class DiaryRepositoryImpl implements DiaryRepository {
     required String operation,
     domain.MatchEntry? entry,
     String? documentId,
+    String? userId,
     String? collection,
   }) async {
-    final payload = entry != null ? jsonEncode(entry.toJson()) : '{}';
+    // For delete ops, embed userId in the payload so the worker can build
+    // the Firestore path without needing to look up the local row.
+    final payload = entry != null
+        ? jsonEncode(entry.toJson())
+        : (userId != null ? jsonEncode({'userId': userId}) : '{}');
+
     await _database.into(_database.syncQueue).insert(
           SyncQueueCompanion.insert(
             operation: operation,

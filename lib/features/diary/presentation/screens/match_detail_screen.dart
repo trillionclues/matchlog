@@ -4,6 +4,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:matchlog/core/router/routes.dart';
+import 'package:matchlog/core/utils/app_logger.dart';
 import '../../../../core/theme/spacing.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/error_state.dart';
@@ -12,10 +14,16 @@ import '../../../../shared/widgets/snackbar.dart';
 import '../providers/diary_providers.dart';
 import '../widgets/rating_stars.dart';
 
-class MatchDetailScreen extends ConsumerWidget {
+class MatchDetailScreen extends ConsumerStatefulWidget {
   final String entryId;
-
   const MatchDetailScreen({super.key, required this.entryId});
+
+  @override
+  ConsumerState<MatchDetailScreen> createState() => _MatchDetailScreenState();
+}
+
+class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
+  bool _isDeleting = false;
 
   IconData _watchTypeIcon(String type) => switch (type) {
         'stadium' => Icons.stadium_outlined,
@@ -34,8 +42,9 @@ class MatchDetailScreen extends ConsumerWidget {
       };
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final entryAsync = ref.watch(matchEntryDetailProvider(entryId));
+  Widget build(BuildContext context) {
+    final entryAsync = ref.watch(matchEntryDetailProvider(widget.entryId));
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -46,7 +55,7 @@ class MatchDetailScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
             tooltip: 'Delete',
-            onPressed: () => _confirmDelete(context, ref),
+            onPressed: _isDeleting ? null : _confirmDelete,
           ),
         ],
       ),
@@ -54,7 +63,8 @@ class MatchDetailScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorState(
           message: e.toString(),
-          onRetry: () => ref.invalidate(matchEntryDetailProvider(entryId)),
+          onRetry: () =>
+              ref.invalidate(matchEntryDetailProvider(widget.entryId)),
         ),
         data: (entry) {
           if (entry == null) {
@@ -66,8 +76,7 @@ class MatchDetailScreen extends ConsumerWidget {
                       size: 64,
                       color: colorScheme.onSurface.withValues(alpha: 0.3)),
                   MatchLogSpacing.gapLg,
-                  Text('Entry not found',
-                      style: theme.textTheme.headlineSmall),
+                  Text('Entry not found', style: theme.textTheme.headlineSmall),
                   MatchLogSpacing.gapSm,
                   OutlinedButton(
                     onPressed: () => context.pop(),
@@ -151,8 +160,8 @@ class MatchDetailScreen extends ConsumerWidget {
                   ),
                   _MetaChip(
                     icon: Icons.sports_outlined,
-                    label: entry.sport[0].toUpperCase() +
-                        entry.sport.substring(1),
+                    label:
+                        entry.sport[0].toUpperCase() + entry.sport.substring(1),
                     colorScheme: colorScheme,
                     textTheme: theme.textTheme,
                   ),
@@ -215,7 +224,7 @@ class MatchDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
+  void _confirmDelete() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -231,17 +240,19 @@ class MatchDetailScreen extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
+              setState(() => _isDeleting = true);
               final result = await ref
                   .read(deleteEntryControllerProvider.notifier)
-                  .delete(entryId);
-              if (context.mounted) {
-                if (result.isSuccess) {
-                  MatchLogSnackBar.success(context, 'Entry deleted.');
-                  context.pop();
-                } else {
-                  MatchLogSnackBar.error(
-                      context, result.message ?? 'Delete failed.');
-                }
+                  .delete(widget.entryId);
+              if (!mounted) return;
+              setState(() => _isDeleting = false);
+              if (result.isSuccess) {
+                MatchLogSnackBar.success(context, 'Entry deleted.');
+                context.go(Routes.diary);
+              } else {
+                AppLogger.log('Delete failed: ${result.message}');
+                MatchLogSnackBar.error(
+                    context, result.message ?? 'Delete failed.');
               }
             },
             child: Text(

@@ -5,7 +5,9 @@ library;
 
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:matchlog/core/utils/app_logger.dart';
 import '../domain/entities/match_entry.dart' as domain;
 
 class DiaryFirebaseSource {
@@ -15,7 +17,8 @@ class DiaryFirebaseSource {
   DiaryFirebaseSource({
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+  })  : _firestore = firestore ??
+            FirebaseFirestore.instance,
         _storage = storage ?? FirebaseStorage.instance;
 
   // Firestore collection path for user's match entries.
@@ -24,7 +27,15 @@ class DiaryFirebaseSource {
 
   // Write a match entry document to Firestore.
   Future<void> createEntry(domain.MatchEntry entry) async {
-    await _entriesRef(entry.userId).doc(entry.id).set(_toFirestore(entry));
+    AppLogger.firebase(
+        'Attempting Firestore write to: users/${entry.userId}/match_entries/${entry.id}');
+    try {
+      await _entriesRef(entry.userId).doc(entry.id).set(_toFirestore(entry));
+      AppLogger.firebase('Write confirmed by server');
+    } catch (e, st) {
+      AppLogger.firebase('Write threw: $e', error: e, st: st);
+      rethrow;
+    }
   }
 
   // Fetch all match entries for a user from Firestore.
