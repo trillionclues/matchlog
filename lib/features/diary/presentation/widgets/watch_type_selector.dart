@@ -2,6 +2,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/spacing.dart';
+import 'interactive_chip.dart';
 
 class WatchTypeSelector extends StatelessWidget {
   final String? selected;
@@ -27,17 +28,33 @@ class WatchTypeSelector extends StatelessWidget {
       runSpacing: MatchLogSpacing.sm,
       children: _types.map((type) {
         final isSelected = selected == type.$1;
-        return ChoiceChip(
-          label: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(type.$2, size: 16),
-              const SizedBox(width: 6),
-              Text(type.$3),
-            ],
-          ),
+        return InteractiveChip(
           selected: isSelected,
-          onSelected: (_) => onChanged(type.$1),
+          child: ChoiceChip(
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  ),
+                  child: Icon(
+                    type.$2,
+                    key: ValueKey('${type.$1}-$isSelected'),
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(type.$3),
+              ],
+            ),
+            selected: isSelected,
+            onSelected: (_) => onChanged(type.$1),
+          ),
         );
       }).toList(),
     );

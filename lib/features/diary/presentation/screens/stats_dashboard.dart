@@ -1,5 +1,4 @@
-// StatsDashboard — personal reflection screen with headline cards
-// and league/team/watch-type breakdowns.
+
 library;
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/spacing.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../providers/stats_providers.dart';
+import '../widgets/calendar_heatmap.dart';
 import '../widgets/stat_card.dart';
 
 class StatsDashboard extends ConsumerWidget {
@@ -57,7 +57,6 @@ class StatsDashboard extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(MatchLogSpacing.lg),
             children: [
-              // Headline stats grid
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -88,23 +87,10 @@ class StatsDashboard extends ConsumerWidget {
                   ),
                 ],
               ),
+              MatchLogSpacing.gapSm,
+              const CalendarHeatmap(),
               MatchLogSpacing.gapXl,
 
-              // This month
-              _SectionHeader(
-                title: 'This month',
-                value: '${stats.matchesThisMonth} matches',
-              ),
-              MatchLogSpacing.gapLg,
-
-              // Longest streak
-              _SectionHeader(
-                title: 'Longest streak',
-                value: '${stats.longestStreak} days',
-              ),
-              MatchLogSpacing.gapXl,
-
-              // League breakdown
               if (stats.matchesByLeague.isNotEmpty) ...[
                 Text('By league', style: theme.textTheme.titleMedium),
                 MatchLogSpacing.gapSm,
@@ -117,7 +103,6 @@ class StatsDashboard extends ConsumerWidget {
                 MatchLogSpacing.gapXl,
               ],
 
-              // Team breakdown
               if (stats.matchesByTeam.isNotEmpty) ...[
                 Text('By team', style: theme.textTheme.titleMedium),
                 MatchLogSpacing.gapSm,
@@ -130,7 +115,6 @@ class StatsDashboard extends ConsumerWidget {
                 MatchLogSpacing.gapXl,
               ],
 
-              // Watch type breakdown
               if (stats.matchesByWatchType.isNotEmpty) ...[
                 Text('By watch type', style: theme.textTheme.titleMedium),
                 MatchLogSpacing.gapSm,
@@ -143,7 +127,6 @@ class StatsDashboard extends ConsumerWidget {
                 MatchLogSpacing.gapXl,
               ],
 
-              // Betting summary (if any bets exist)
               if (stats.totalBets > 0) ...[
                 Text('Betting summary', style: theme.textTheme.titleMedium),
                 MatchLogSpacing.gapSm,
@@ -227,30 +210,5 @@ class StatsDashboard extends ConsumerWidget {
         ),
       );
     }).toList();
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final String value;
-
-  const _SectionHeader({required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: theme.textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurface.withValues(alpha: 0.6),
-        )),
-        Text(value, style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        )),
-      ],
-    );
   }
 }

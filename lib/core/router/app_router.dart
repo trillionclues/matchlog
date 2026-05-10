@@ -3,6 +3,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:matchlog/shared/widgets/app_shell.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -119,42 +120,60 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ),
     routes: [
+      GoRoute(path: Routes.home, redirect: (_, __) => Routes.diary),
       GoRoute(
-        path: Routes.home,
-        redirect: (_, __) => Routes.diary,
-      ),
+          path: Routes.loading,
+          name: 'loading',
+          builder: (_, __) => const _LoadingScreen()),
       GoRoute(
-        path: Routes.loading,
-        name: 'loading',
-        builder: (context, state) => const _LoadingScreen(),
-      ),
+          path: Routes.onboarding,
+          name: 'onboarding',
+          builder: (_, __) => const OnboardingScreen()),
       GoRoute(
-        path: Routes.onboarding,
-        name: 'onboarding',
-        builder: (context, state) => const OnboardingScreen(),
-      ),
+          path: Routes.login,
+          name: 'login',
+          builder: (_, __) => const LoginScreen()),
       GoRoute(
-        path: Routes.login,
-        name: 'login',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: LoginScreen()),
-      ),
+          path: Routes.register,
+          name: 'register',
+          builder: (_, __) => const RegisterScreen()),
+      StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) =>
+              AppShell(navigationShell: navigationShell),
+          branches: [
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: Routes.diary,
+                name: 'diary',
+                builder: (_, __) => const DiaryScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: Routes.betting,
+                name: 'betting',
+                builder: (_, __) => const BettingScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: Routes.feed,
+                name: 'feed',
+                builder: (_, __) => const FeedScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: Routes.profile,
+                name: 'profile',
+                builder: (_, __) => const ProfileScreen(),
+              ),
+            ]),
+          ]),
       GoRoute(
-        path: Routes.register,
-        name: 'register',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: RegisterScreen()),
-      ),
-      GoRoute(
-        path: Routes.diary,
-        name: 'diary',
-        builder: (context, state) => const DiaryScreen(),
-      ),
-      GoRoute(
-        path: Routes.logMatch,
-        name: 'logMatch',
-        builder: (context, state) => const LogMatchScreen(),
-      ),
+          path: Routes.logMatch,
+          name: 'logMatch',
+          builder: (_, __) => const LogMatchScreen()),
       GoRoute(
         path: Routes.matchDetail,
         name: 'matchDetail',
@@ -163,41 +182,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: Routes.stats,
-        name: 'stats',
-        builder: (context, state) => const StatsDashboard(),
-      ),
+          path: Routes.stats,
+          name: 'stats',
+          builder: (_, __) => const StatsDashboard()),
       GoRoute(
-        path: Routes.betting,
-        name: 'betting',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: BettingScreen(),
-        ),
-      ),
+          path: Routes.logBet,
+          name: 'logBet',
+          builder: (_, __) => const LogBetScreen()),
       GoRoute(
-        path: Routes.logBet,
-        name: 'logBet',
-        builder: (context, state) => const LogBetScreen(),
-      ),
-      GoRoute(
-        path: Routes.profile,
-        name: 'profile',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: ProfileScreen(),
-        ),
-      ),
-      GoRoute(
-        path: Routes.settings,
-        name: 'settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: Routes.feed,
-        name: 'feed',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: FeedScreen(),
-        ),
-      ),
+          path: Routes.settings,
+          name: 'settings',
+          builder: (_, __) => const SettingsScreen()),
       GoRoute(
         path: Routes.userProfile,
         name: 'userProfile',
@@ -206,15 +201,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: Routes.groups,
-        name: 'groups',
-        builder: (context, state) => const GroupsScreen(),
-      ),
+          path: Routes.groups,
+          name: 'groups',
+          builder: (_, __) => const GroupsScreen()),
       GoRoute(
-        path: Routes.createGroup,
-        name: 'createGroup',
-        builder: (context, state) => const CreateGroupScreen(),
-      ),
+          path: Routes.createGroup,
+          name: 'createGroup',
+          builder: (_, __) => const CreateGroupScreen()),
       GoRoute(
         path: Routes.groupDetail,
         name: 'groupDetail',

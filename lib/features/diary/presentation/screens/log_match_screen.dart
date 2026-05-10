@@ -1,4 +1,3 @@
-
 library;
 
 import 'package:flutter/material.dart';
@@ -123,12 +122,14 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: MatchLogSpacing.lg,
             vertical: MatchLogSpacing.lg,
           ),
           children: [
-            
             Text('Sport', style: theme.textTheme.labelLarge),
             MatchLogSpacing.gapSm,
             DropdownButtonFormField<String>(
@@ -170,7 +171,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
             TextFormField(
               controller: _scoreController,
               decoration: const InputDecoration(hintText: 'e.g. 2-1'),
-              validator:                 MatchLogValidators.score,
+              validator: MatchLogValidators.score,
               enabled: !isLoading,
             ),
             MatchLogSpacing.gapXl,

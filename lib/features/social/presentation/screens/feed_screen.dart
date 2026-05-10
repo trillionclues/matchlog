@@ -2,7 +2,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/widgets/bottom_nav.dart';
 
 class FeedScreen extends ConsumerWidget {
   const FeedScreen({super.key});
@@ -14,7 +13,6 @@ class FeedScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Feed')),
-      bottomNavigationBar: const MatchLogBottomNav(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
-import '../../../../shared/widgets/bottom_nav.dart';
 
 class BettingScreen extends ConsumerWidget {
   const BettingScreen({super.key});
@@ -16,7 +15,6 @@ class BettingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Betting')),
-      bottomNavigationBar: const MatchLogBottomNav(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push(Routes.logBet),
         child: const Icon(Icons.add_rounded),

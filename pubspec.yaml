@@ -89,6 +89,8 @@ dev_dependencies:
   mocktail: ^1.0.3
   firebase_auth_mocks: ^0.13.0
 
+  kiri_check: ^1.2.0
+
   flutter_lints: ^5.0.0
 
 dependency_overrides:

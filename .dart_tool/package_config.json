@@ -164,6 +164,12 @@
       "languageVersion": "2.19"
     },
     {
+      "name": "cli_config",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/cli_config-0.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "cli_util",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/cli_util-0.4.2",
       "packageUri": "lib/",
@@ -224,6 +230,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "coverage",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/coverage-1.15.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "cross_file",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/cross_file-0.3.4+2",
       "packageUri": "lib/",
@@ -264,6 +276,12 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/dart_style-2.3.8",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "date_kit",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/date_kit-1.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "dbus",
@@ -812,6 +830,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "kiri_check",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/kiri_check-1.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "leak_tracker",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/leak_tracker-10.0.7",
       "packageUri": "lib/",
@@ -892,6 +916,12 @@
     {
       "name": "nm",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/nm-0.5.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "node_preamble",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/node_preamble-2.0.2",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -1088,6 +1118,18 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "shelf_packages_handler",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shelf_packages_handler-3.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "shelf_static",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shelf_static-1.1.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
       "name": "shelf_web_socket",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/shelf_web_socket-2.0.1",
       "packageUri": "lib/",
@@ -1122,6 +1164,18 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/source_helper-1.3.5",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "source_map_stack_trace",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/source_map_stack_trace-2.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "source_maps",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/source_maps-0.10.13",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "source_span",
@@ -1226,8 +1280,20 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "test",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/test-1.25.8",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "test_api",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/test_api-0.7.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "test_core",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/test_core-0.6.5",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -1248,6 +1314,12 @@
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/typed_data-1.4.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
+    },
+    {
+      "name": "universal_platform",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/universal_platform-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "url_launcher_linux",
@@ -1316,6 +1388,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "webkit_inspection_protocol",
+      "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/webkit_inspection_protocol-1.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "win32",
       "rootUri": "file:///Users/user/.pub-cache/hosted/pub.dev/win32-5.10.1",
       "packageUri": "lib/",
@@ -1346,7 +1424,7 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2026-04-24T10:20:32.772898Z",
+  "generated": "2026-05-10T22:21:26.540588Z",
   "generator": "pub",
   "generatorVersion": "3.6.0",
   "flutterRoot": "file:///Users/user/fvm/versions/3.27.0",

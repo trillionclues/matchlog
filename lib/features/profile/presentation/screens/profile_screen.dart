@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/spacing.dart';
-import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../shared/widgets/snackbar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
@@ -28,7 +27,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: const MatchLogBottomNav(),
       body: ListView(
         padding: MatchLogSpacing.screenPadding,
         children: [

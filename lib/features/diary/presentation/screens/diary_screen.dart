@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/spacing.dart';
-import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
@@ -13,6 +12,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/widgets/email_verification_banner.dart';
 import '../../domain/repositories/diary_repository.dart';
 import '../providers/diary_providers.dart';
+import '../widgets/interactive_chip.dart';
 import '../widgets/match_card.dart';
 
 class DiaryScreen extends ConsumerWidget {
@@ -21,8 +21,6 @@ class DiaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authUser = ref.watch(authStateProvider).valueOrNull;
-    final theme = Theme.of(context);
-    // final colorScheme = theme.colorScheme;
     final entries = ref.watch(diaryEntriesProvider);
     final activeFilter = ref.watch(diaryFilterProvider);
 
@@ -39,45 +37,10 @@ class DiaryScreen extends ConsumerWidget {
             icon: const Icon(Icons.person_outline_rounded),
             onPressed: () => context.push(Routes.profile),
           ),
-          // PopupMenuButton<String>(
-          //   icon: const Icon(Icons.more_vert_rounded),
-          //   onSelected: (value) async {
-          //     if (value == 'logout') {
-          //       await ref.read(authControllerProvider.notifier).signOut();
-          //       if (context.mounted) {
-          //         MatchLogSnackBar.info(context, 'Signed out.');
-          //       }
-          //     }
-          //   },
-          //   itemBuilder: (_) => [
-          //     PopupMenuItem(
-          //       value: 'settings',
-          //       onTap: () => context.push(Routes.settings),
-          //       child: const Row(
-          //         children: [
-          //           Icon(Icons.settings_outlined, size: 20),
-          //           SizedBox(width: MatchLogSpacing.sm),
-          //           Text('Settings'),
-          //         ],
-          //       ),
-          //     ),
-          //     PopupMenuItem(
-          //       value: 'logout',
-          //       child: Row(
-          //         children: [
-          //           Icon(Icons.logout_rounded, size: 20, color: colorScheme.error),
-          //           const SizedBox(width: MatchLogSpacing.sm),
-          //           Text('Sign out', style: TextStyle(color: colorScheme.error)),
-          //         ],
-          //       ),
-          //     ),
-          //   ],
-          // ),
-        
         ],
       ),
-      bottomNavigationBar: const MatchLogBottomNav(),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => context.push(Routes.logMatch),
         child: const Icon(Icons.add_rounded),
       ),
@@ -93,42 +56,80 @@ class DiaryScreen extends ConsumerWidget {
           ),
 
           Expanded(
-            child: entries.when(
-              loading: () => ShimmerList(
-                itemBuilder: () => const MatchCardShimmer(),
-              ),
-              error: (e, _) => ErrorState(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(diaryEntriesProvider),
-              ),
-              data: (list) {
-                if (list.isEmpty) {
-                  return EmptyState(
-                    icon: Icons.book_outlined,
-                    title: 'Your match diary',
-                    subtitle:
-                        'Start logging matches to build your sports diary.',
-                    ctaText: 'Log a match',
-                    onCta: () => context.push(Routes.logMatch),
-                  );
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async =>
-                      ref.invalidate(diaryEntriesProvider),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(
-                      top: MatchLogSpacing.sm,
-                      bottom: 80, // clear the FAB
-                    ),
-                    itemCount: list.length,
-                    itemBuilder: (_, i) => MatchCard(
-                      entry: list[i],
-                      onTap: () => context.push(Routes.matchDetail.replaceAll(':id', list[i].id)),
-                    ),
-                  ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeOutCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
                 );
               },
+              layoutBuilder: (currentChild, previousChildren) {
+                return Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    ...previousChildren,
+                    if (currentChild != null) currentChild,
+                  ],
+                );
+              },
+              child: entries.when(
+                loading: () => KeyedSubtree(
+                  key: ValueKey('loading-${activeFilter.name}'),
+                  child: ShimmerList(
+                    itemBuilder: () => const MatchCardShimmer(),
+                  ),
+                ),
+                error: (e, _) => KeyedSubtree(
+                  key: ValueKey('error-${activeFilter.name}'),
+                  child: ErrorState(
+                    message: e.toString(),
+                    onRetry: () => ref.invalidate(diaryEntriesProvider),
+                  ),
+                ),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return KeyedSubtree(
+                      key: ValueKey('empty-${activeFilter.name}'),
+                      child: EmptyState(
+                        icon: Icons.book_outlined,
+                        title: 'Your match diary',
+                        subtitle:
+                            'Start logging matches to build your sports diary.',
+                        ctaText: 'Log a match',
+                        onCta: () => context.push(Routes.logMatch),
+                      ),
+                    );
+                  }
+
+                  return KeyedSubtree(
+                    key: ValueKey('data-${activeFilter.name}'),
+                    child: RefreshIndicator(
+                      onRefresh: () async => ref.invalidate(
+                        diaryEntriesProvider,
+                      ),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.only(
+                          top: MatchLogSpacing.sm,
+                          bottom: 80, // clear the FAB
+                        ),
+                        itemCount: list.length,
+                        itemBuilder: (_, i) => MatchCard(
+                          entry: list[i],
+                          onTap: () => context.push(
+                            Routes.matchDetail.replaceAll(':id', list[i].id),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -157,15 +158,20 @@ class _FilterChips extends StatelessWidget {
       height: 48,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: MatchLogSpacing.lg),
         itemCount: _filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: MatchLogSpacing.sm),
         itemBuilder: (_, i) {
           final (filter, label) = _filters[i];
-          return FilterChip(
-            label: Text(label),
-            selected: active == filter,
-            onSelected: (_) => onChanged(filter),
+          final isSelected = active == filter;
+          return InteractiveChip(
+            selected: isSelected,
+            child: FilterChip(
+              label: Text(label),
+              selected: isSelected,
+              onSelected: (_) => onChanged(filter),
+            ),
           );
         },
       ),

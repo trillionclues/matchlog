@@ -46,7 +46,6 @@ class MatchCardShimmer extends StatelessWidget {
           children: [
             _shimmerBox(180, 12, colorScheme),
             const SizedBox(height: MatchLogSpacing.md),
-            // Score row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
