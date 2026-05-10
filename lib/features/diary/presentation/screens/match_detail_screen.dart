@@ -1,4 +1,4 @@
-// MatchDetailScreen — full journal entry view for a single match.
+
 library;
 
 import 'package:flutter/material.dart';
@@ -90,7 +90,6 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
           return ListView(
             padding: const EdgeInsets.all(MatchLogSpacing.lg),
             children: [
-              // Teams + score
               if (entry.awayTeam != null) ...[
                 Center(
                   child: Text(
@@ -139,8 +138,6 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
                 ),
               ],
               MatchLogSpacing.gapXl,
-
-              // Metadata chips
               Wrap(
                 spacing: MatchLogSpacing.sm,
                 runSpacing: MatchLogSpacing.sm,
@@ -184,11 +181,9 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
               ),
               MatchLogSpacing.gapXl,
 
-              // Rating
               Center(child: RatingStars(rating: entry.rating, size: 28)),
               MatchLogSpacing.gapXl,
 
-              // Review
               if (entry.review != null && entry.review!.isNotEmpty) ...[
                 Text('Review', style: theme.textTheme.labelLarge),
                 MatchLogSpacing.gapSm,
@@ -199,15 +194,12 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
                 MatchLogSpacing.gapXl,
               ],
 
-              // Photos
               if (entry.photos.isNotEmpty) ...[
                 Text('Photos', style: theme.textTheme.labelLarge),
                 MatchLogSpacing.gapSm,
                 PhotoGrid(photoUrls: entry.photos),
                 MatchLogSpacing.gapXl,
               ],
-
-              // Date footer
               Center(
                 child: Text(
                   DateFormatter.formatFull(entry.createdAt),

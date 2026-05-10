@@ -17,22 +17,6 @@ class MatchCard extends StatelessWidget {
     this.onTap,
   });
 
-  IconData _watchTypeIcon(String type) => switch (type) {
-        'stadium' => Icons.stadium_outlined,
-        'tv' => Icons.tv_outlined,
-        'streaming' => Icons.wifi_outlined,
-        'radio' => Icons.radio_outlined,
-        _ => Icons.visibility_outlined,
-      };
-
-  String _watchTypeLabel(String type) => switch (type) {
-        'stadium' => 'Stadium',
-        'tv' => 'TV',
-        'streaming' => 'Streaming',
-        'radio' => 'Radio',
-        _ => type,
-      };
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -103,80 +87,6 @@ class MatchCard extends StatelessWidget {
                 _Footer(entry: entry, colorScheme: colorScheme, textTheme: theme.textTheme),
                 ],
               ),
-
-              // _MetadataRow(
-              //   league: entry.league,
-              //   watchType: entry.watchType,
-              //   watchTypeIcon: _watchTypeIcon(entry.watchType),
-              //   watchTypeLabel: _watchTypeLabel(entry.watchType),
-              //   venue: entry.venue,
-              //   colorScheme: colorScheme,
-              //   textTheme: theme.textTheme,
-              // ),
-              // const SizedBox(height: MatchLogSpacing.md),
-
-              // _ScoreRow(
-              //   homeTeam: entry.homeTeam,
-              //   awayTeam: entry.awayTeam,
-              //   score: entry.score,
-              //   theme: theme,
-              //   colorScheme: colorScheme,
-              // ),
-              // const SizedBox(height: MatchLogSpacing.md),
-              // Row(
-              //   children: [
-              //     RatingStars(rating: entry.rating, size: 16),
-              //     if (entry.review != null && entry.review!.isNotEmpty) ...[
-              //       const SizedBox(width: MatchLogSpacing.sm),
-              //       Expanded(
-              //         child: Text(
-              //           entry.review!,
-              //           maxLines: 1,
-              //           overflow: TextOverflow.ellipsis,
-              //           style: theme.textTheme.bodySmall?.copyWith(
-              //             color: colorScheme.onSurface.withValues(alpha: 0.6),
-              //           ),
-              //         ),
-              //       ),
-              //     ],
-              //   ],
-              // ),
-              // const SizedBox(height: MatchLogSpacing.sm),
-
-              // Row(
-              //   children: [
-              //     if (entry.photos.isNotEmpty) ...[
-              //       Icon(
-              //         Icons.photo_outlined,
-              //         size: 14,
-              //         color: colorScheme.onSurface.withValues(alpha: 0.45),
-              //       ),
-              //       const SizedBox(width: 4),
-              //       Text(
-              //         '${entry.photos.length}',
-              //         style: theme.textTheme.labelSmall?.copyWith(
-              //           color: colorScheme.onSurface.withValues(alpha: 0.45),
-              //         ),
-              //       ),
-              //       const SizedBox(width: MatchLogSpacing.md),
-              //     ],
-              //     if (entry.geoVerified) ...[
-              //       Icon(
-              //         Icons.verified_outlined,
-              //         size: 14,
-              //         color: colorScheme.primary,
-              //       ),
-              //       const SizedBox(width: MatchLogSpacing.md),
-              //     ],
-              //     const Spacer(),
-              //     Text(
-              //       DateFormatter.formatRelative(entry.createdAt),
-              //       style: theme.textTheme.labelSmall?.copyWith(
-              //         color: colorScheme.onSurface.withValues(alpha: 0.45),
-              //       ),
-              //     ),
-              //   ],
-              // ),
           ),
         ),
       ),
@@ -194,7 +104,6 @@ class _ScoreBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Individual sport — no away team
     if (entry.awayTeam == null) {
       return Row(
         children: [
@@ -223,8 +132,6 @@ class _ScoreBlock extends StatelessWidget {
         ],
       );
     }
-
-    // Team sport
     return Row(
       children: [
         Expanded(

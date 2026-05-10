@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/spacing.dart';
-import '../../../../shared/widgets/bottom_nav.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
@@ -41,6 +40,7 @@ class DiaryScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => context.push(Routes.logMatch),
         child: const Icon(Icons.add_rounded),
       ),

@@ -1,4 +1,3 @@
-// Centered icon + title + subtitle + optional CTA button.
 
 library;
 
