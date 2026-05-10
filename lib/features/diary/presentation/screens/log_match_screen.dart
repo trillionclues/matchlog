@@ -1,10 +1,10 @@
-// Accepts optional fixture context via route extras.
 
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:matchlog/core/utils/matchlog_validators.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/theme/spacing.dart';
 import '../../../../shared/widgets/snackbar.dart';
@@ -151,8 +151,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
             TextFormField(
               controller: _homeTeamController,
               decoration: const InputDecoration(hintText: 'Home team'),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Required' : null,
+              validator: MatchLogValidators.teamName,
               enabled: !isLoading,
             ),
             MatchLogSpacing.gapSm,
@@ -162,6 +161,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
                 hintText: 'Away team (optional for individual sports)',
               ),
               enabled: !isLoading,
+              validator: MatchLogValidators.optionalTeamName,
             ),
             MatchLogSpacing.gapXl,
 
@@ -170,8 +170,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
             TextFormField(
               controller: _scoreController,
               decoration: const InputDecoration(hintText: 'e.g. 2-1'),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Required' : null,
+              validator:                 MatchLogValidators.score,
               enabled: !isLoading,
             ),
             MatchLogSpacing.gapXl,
@@ -182,8 +181,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
               controller: _leagueController,
               decoration:
                   const InputDecoration(hintText: 'e.g. Premier League'),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Required' : null,
+              validator: MatchLogValidators.league,
               enabled: !isLoading,
             ),
             MatchLogSpacing.gapXl,
@@ -212,6 +210,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
               decoration:
                   const InputDecoration(hintText: 'Optional — stadium name'),
               enabled: !isLoading,
+              validator: MatchLogValidators.optionalVenue,
             ),
             MatchLogSpacing.gapXl,
 
@@ -225,6 +224,7 @@ class _LogMatchScreenState extends ConsumerState<LogMatchScreen> {
               ),
               maxLines: 4,
               enabled: !isLoading,
+              validator: MatchLogValidators.optionalReview,
             ),
             const SizedBox(height: MatchLogSpacing.xxxl),
 
