@@ -124,9 +124,7 @@ class DiaryScreen extends ConsumerWidget {
                     itemCount: list.length,
                     itemBuilder: (_, i) => MatchCard(
                       entry: list[i],
-                      onTap: () => context.push(
-                        '${Routes.diary}/entry/${list[i].id}',
-                      ),
+                      onTap: () => context.push(Routes.matchDetail.replaceAll(':id', list[i].id)),
                     ),
                   ),
                 );

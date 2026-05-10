@@ -6,8 +6,10 @@
 
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
+import 'package:matchlog/core/utils/app_logger.dart';
 import '../../../core/database/app_database.dart';
 import '../domain/entities/match_entry.dart' as domain;
 import '../domain/entities/user_stats.dart';
@@ -45,16 +47,21 @@ class DiaryRepositoryImpl implements DiaryRepository {
         );
       }
 
+      AppLogger.db('Inserting entry locally: ${entry.id}');
       await _local.insertEntry(entry);
+      AppLogger.db('Local insert success: ${entry.id}');
 
       if (_isOnline()) {
-        await _syncEntryToRemote(entry);
+        AppLogger.firebase('Online — firing background sync for: ${entry.id}');
+        unawaited(_syncEntryToRemote(entry));
       } else {
+        AppLogger.diary('Offline — queuing create for: ${entry.id}');
         await _enqueueSync(operation: 'create', entry: entry);
       }
 
       return const Right(unit);
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.diary('logMatch failed', error: e, st: st);
       return Left(DiaryFailure.storage(e.toString()));
     }
   }
@@ -186,6 +193,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
   // Attempt to sync a single entry to Firebase (photos + document).
   Future<void> _syncEntryToRemote(domain.MatchEntry entry) async {
     try {
+      AppLogger.firebase('Starting remote sync: ${entry.id}');
       var syncedEntry = entry;
 
       final localPhotos =
@@ -207,9 +215,14 @@ class DiaryRepositoryImpl implements DiaryRepository {
         await _local.updatePhotoUrls(entry.id, allUrls);
       }
 
-      await _remote.createEntry(syncedEntry);
+      await _remote.createEntry(syncedEntry).timeout(const Duration(seconds: 20));
+      AppLogger.firebase('Firestore write success: ${entry.id}');
+
       await _local.markSynced(entry.id);
-    } catch (_) {
+    } on TimeoutException {
+    AppLogger.firebase('Remote sync timed out — queuing: ${entry.id}');
+    await _enqueueSync(operation: 'create', entry: entry);
+  } catch (_) {
       await _enqueueSync(operation: 'create', entry: entry);
     }
   }
