@@ -36,6 +36,11 @@ class MatchDao extends DatabaseAccessor<AppDatabase> with _$MatchDaoMixin {
   Future<void> markSynced(String id) =>
       (update(matchEntries)..where((t) => t.id.equals(id)))
           .write(const MatchEntriesCompanion(synced: Value(true)));
+
+  // Update only geoVerified field for a match entry.
+  Future<void> updateGeoVerified(String id, bool geoVerified) =>
+      (update(matchEntries)..where((t) => t.id.equals(id)))
+          .write(MatchEntriesCompanion(geoVerified: Value(geoVerified)));
           
   // Watch all match entries for a user, ordered by most recent first.
   // Returns a reactive stream — UI rebuilds automatically on changes.

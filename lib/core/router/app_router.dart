@@ -13,6 +13,7 @@ import '../../features/betting/presentation/screens/log_bet_screen.dart';
 import '../../features/diary/presentation/screens/diary_screen.dart';
 import '../../features/diary/presentation/screens/log_match_screen.dart';
 import '../../features/diary/presentation/screens/match_detail_screen.dart';
+import '../../features/diary/presentation/screens/stadium_check_in_screen.dart';
 import '../../features/diary/presentation/screens/stats_dashboard.dart';
 import '../../features/groups/presentation/screens/group_screens.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -178,6 +179,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.matchDetail,
         name: 'matchDetail',
         builder: (context, state) => MatchDetailScreen(
+          entryId: state.pathParameters['id'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: Routes.stadiumCheckIn,
+        name: 'stadiumCheckIn',
+        builder: (context, state) => StadiumCheckInScreen(
           entryId: state.pathParameters['id'] ?? '',
         ),
       ),

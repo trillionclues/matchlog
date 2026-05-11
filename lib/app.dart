@@ -14,7 +14,8 @@ class MatchLogApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
 
-    // Activate sync trigger to watche connectivity and drain SyncQueue on reconnect.
+    // Activate sync trigger to watche connectivity
+    // and drain SyncQueue on reconnect.
     ref.watch(syncTriggerProvider);
 
     return _AuthLifecycleScope(

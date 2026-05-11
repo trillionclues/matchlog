@@ -13,6 +13,7 @@ import '../../../../shared/widgets/photo_grid.dart';
 import '../../../../shared/widgets/snackbar.dart';
 import '../providers/diary_providers.dart';
 import '../widgets/rating_stars.dart';
+import '../../domain/usecases/check_in_eligibility.dart';
 
 class MatchDetailScreen extends ConsumerStatefulWidget {
   final String entryId;
@@ -180,6 +181,26 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
                 ],
               ),
               MatchLogSpacing.gapXl,
+
+              // Check In — only shown (stadium + not yet verified + today's match)
+              if (CheckInEligibility()(entry)) ...[
+                Center(
+                  child: FilledButton.tonal(
+                    onPressed: () => context.push(
+                      Routes.stadiumCheckInPath(widget.entryId),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on_outlined, size: 18),
+                        SizedBox(width: 6),
+                        Text('Check In'),
+                      ],
+                    ),
+                  ),
+                ),
+                MatchLogSpacing.gapXl,
+              ],
 
               Center(child: RatingStars(rating: entry.rating, size: 28)),
               MatchLogSpacing.gapXl,

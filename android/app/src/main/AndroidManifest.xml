@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Location permissions for stadium check-in.
+         ACCESS_FINE_LOCATION is required by geolocator even when medium accuracy
+         is requested. ACCESS_COARSE_LOCATION is the fallback for devices that
+         deny fine location. Neither permission is requested at app launch —
+         only when the user explicitly taps "Check In". -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application
         android:label="matchlog"
         android:name="${applicationName}"

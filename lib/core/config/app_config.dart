@@ -1,4 +1,4 @@
-// App environment configuration. Reads build-time flags injected via `--dart-define`.
+// Reads build-time flags injected via `--dart-define`.
 
 //   flutter run --dart-define=ENV=staging --dart-define=FOOTBALL_API_KEY=xxx
 //   flutter build appbundle --dart-define=ENV=prod --dart-define=FOOTBALL_API_KEY=xxx
@@ -8,27 +8,23 @@
 
 library;
 
-/// The active deployment environment.
 enum Environment {
   staging,prod,
 }
 
 class AppConfig {
-  // active environment (staging or prod).
   final Environment environment;
 
   // TheSportsDB or API-Football API key.
   final String footballApiKey;
 
-  // Base URL for the football data API.
-  // Defaults to TheSportsDB free tier.
+  // Base URL for TheSportsDB or API-Football data API.
   final String footballApiBaseUrl;
 
-  // Gemini 2.5 Flash API key for AI insights and notification copy.
+  // Gemini API key for AI insights and notification copy.
   // Empty string in staging if not provided.
   final String geminiApiKey;
 
-  // Singleton instance — assigned in [ServiceLocator.initialize] before runApp.
   static late AppConfig instance;
 
   AppConfig._({
@@ -39,7 +35,6 @@ class AppConfig {
   });
 
   // Reads configuration from --dart-define build flags.
-  // Call once during app initialization and assign to [instance].
   factory AppConfig.fromEnvironment() {
     const envString =
         String.fromEnvironment('ENV', defaultValue: 'staging');
@@ -59,13 +54,10 @@ class AppConfig {
     );
   }
 
-  // True when running in staging environment.
   bool get isStaging => environment == Environment.staging;
 
-  // True when running in production environment.
   bool get isProd => environment == Environment.prod;
 
-  // True when a Gemini API key has been provided.
   bool get hasGeminiKey => geminiApiKey.isNotEmpty;
 
   @override

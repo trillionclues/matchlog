@@ -144,6 +144,48 @@ class DiaryRepositoryImpl implements DiaryRepository {
     }
   }
 
+  // 1. Update geoVerified locally (success boundary)
+  // 2. If online: fire-and-forget targeted Firestore field update
+  // 3. If offline or remote fails: enqueue sync operation
+
+  @override
+  Future<Either<DiaryFailure, Unit>> updateGeoVerified({
+    required String userId,
+    required String entryId,
+    required bool geoVerified,
+  }) async {
+    try {
+      // Local write is the success boundary — if this throws, return failure.
+      await _local.updateGeoVerified(entryId, geoVerified);
+
+      if (_isOnline()) {
+        unawaited(
+          _remote
+              .updateGeoVerified(
+                userId: userId,
+                entryId: entryId,
+                geoVerified: geoVerified,
+              )
+              .catchError((_) => _enqueueGeoVerifiedSync(
+                    userId: userId,
+                    entryId: entryId,
+                    geoVerified: geoVerified,
+                  )),
+        );
+      } else {
+        await _enqueueGeoVerifiedSync(
+          userId: userId,
+          entryId: entryId,
+          geoVerified: geoVerified,
+        );
+      }
+
+      return const Right(unit);
+    } catch (e) {
+      return Left(DiaryFailure.storage(e.toString()));
+    }
+  }
+
   @override
   Future<UserStats> calculateStats({required String userId}) async {
     final entries = await _local.getEntries(userId: userId);
@@ -262,6 +304,23 @@ class DiaryRepositoryImpl implements DiaryRepository {
             collection: collection ?? 'match_entries',
             documentId: documentId ?? entry?.id ?? '',
             payload: payload,
+            createdAt: DateTime.now(),
+          ),
+        );
+  }
+
+  // Enqueue a geoVerified field update for later sync.
+  Future<void> _enqueueGeoVerifiedSync({
+    required String userId,
+    required String entryId,
+    required bool geoVerified,
+  }) async {
+    await _database.into(_database.syncQueue).insert(
+          SyncQueueCompanion.insert(
+            operation: 'updateGeoVerified',
+            collection: 'match_entries',
+            documentId: entryId,
+            payload: jsonEncode({'userId': userId, 'geoVerified': geoVerified}),
             createdAt: DateTime.now(),
           ),
         );
