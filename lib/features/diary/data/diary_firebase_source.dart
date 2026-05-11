@@ -5,7 +5,6 @@ library;
 
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:matchlog/core/utils/app_logger.dart';
 import '../domain/entities/match_entry.dart' as domain;
@@ -63,6 +62,19 @@ class DiaryFirebaseSource {
     required String entryId,
   }) async {
     await _entriesRef(userId).doc(entryId).delete();
+  }
+
+  // Targeted update of only the geoVerified field.
+  // Uses Firestore .update() so no other fields are overwritten.
+  Future<void> updateGeoVerified({
+    required String userId,
+    required String entryId,
+    required bool geoVerified,
+  }) async {
+    await _entriesRef(userId).doc(entryId).update({
+      'geoVerified': geoVerified,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // Delete all remote photos for match entry from Storage.

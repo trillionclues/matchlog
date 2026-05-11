@@ -22,6 +22,11 @@ class AppTheme {
           onError: Colors.white,
           outline: MatchLogLightColors.surfaceBorder,
           outlineVariant: MatchLogLightColors.surfaceBorder,
+          surfaceContainerLowest: MatchLogLightColors.background,
+  surfaceContainerLow:    MatchLogLightColors.surface,        // white
+  surfaceContainer:       MatchLogLightColors.surfaceElevated,
+  surfaceContainerHigh:   Color(0xFFF4EFFA),
+  surfaceContainerHighest: MatchLogLightColors.surfaceBorder,
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: MatchLogLightColors.background,
@@ -298,6 +303,11 @@ class AppTheme {
           onError: Colors.white,
           outline: MatchLogColors.surfaceBorder,
           outlineVariant: MatchLogColors.surfaceBorder,
+            surfaceContainerLowest: MatchLogColors.background,
+  surfaceContainerLow:    MatchLogColors.surface,          // 0xFF171124
+  surfaceContainer:       MatchLogColors.surfaceElevated,  // 0xFF21182F
+  surfaceContainerHigh:   Color(0xFF261D35),
+  surfaceContainerHighest: MatchLogColors.surfaceBorder, 
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: MatchLogColors.background,

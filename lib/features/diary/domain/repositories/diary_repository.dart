@@ -30,5 +30,13 @@ abstract interface class DiaryRepository {
     required String entryId,
   });
 
+  // Updates only [geoVerified] field for the given entry.
+  // Follows local Drift write first, then Firestore sync or queue.
+  Future<Either<DiaryFailure, Unit>> updateGeoVerified({
+    required String userId,
+    required String entryId,
+    required bool geoVerified,
+  });
+
   Future<UserStats> calculateStats({required String userId});
 }

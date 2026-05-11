@@ -14,6 +14,9 @@ abstract class Routes {
 
   static const String matchDetail = '/diary/:id';
 
+  // Stadium check-in flow — scoped to specific diary entry.
+  static const String stadiumCheckIn = '/diary/:id/check-in';
+
   static const String betting = '/betting';
 
   static const String logBet = '/betting/log';
@@ -48,6 +51,9 @@ abstract class Routes {
 
   // Build [matchDetail] path with a specific entry ID.
   static String matchDetailPath(String id) => '/diary/$id';
+
+  // Build [stadiumCheckIn] path with specific entry ID.
+  static String stadiumCheckInPath(String id) => '/diary/$id/check-in';
 
   // Build [userProfile] path with a specific user ID.
   static String userProfilePath(String userId) => '/profile/$userId';

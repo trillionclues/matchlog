@@ -89,7 +89,7 @@ class MatchLogColors {
 class MatchLogLightColors {
   MatchLogLightColors._();
 
-  static const Color background = Color(0xFFF7F4FB);
+  static const Color background = Color.fromARGB(255, 255, 255, 255);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceElevated = Color(0xFFFCFAFF);
   static const Color surfaceBorder = Color(0xFFE7DFF1);

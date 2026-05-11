@@ -14,7 +14,6 @@ import '../providers/heatmap_models.dart';
 import '../providers/stats_providers.dart';
 import 'day_detail_sheet.dart';
 import 'heatmap_painter.dart';
-import 'streak_summary_row.dart';
 
 class CalendarHeatmap extends ConsumerWidget {
   const CalendarHeatmap({super.key});

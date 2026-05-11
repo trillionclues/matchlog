@@ -39,6 +39,11 @@ class DiaryLocalSource {
     return _dao.markSynced(id);
   }
 
+  // Update only the geoVerified field for a match entry.
+  Future<void> updateGeoVerified(String id, bool geoVerified) {
+    return _dao.updateGeoVerified(id, geoVerified);
+  }
+
   // Rewrite local photo paths to remote Storage URLs after upload.
   Future<void> updatePhotoUrls(String id, List<String> remoteUrls) {
     return (_dao.update(_dao.matchEntries)..where((t) => t.id.equals(id)))
